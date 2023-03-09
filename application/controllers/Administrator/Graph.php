@@ -158,6 +158,8 @@
                 from tbl_salesmaster sm 
                 join tbl_customer c on c.Customer_SlNo = sm.SalseCustomer_IDNo
                 where 1=1
+                and sm.Status = 'a'
+                and c.status = 'a'
                 $clauses
                 group by sm.SalseCustomer_IDNo
                 order by amount desc 
@@ -171,10 +173,12 @@
                     ifnull(sum(sd.SaleDetails_TotalQuantity), 0) as sold_quantity
                 from tbl_saledetails sd
                 join tbl_product p on p.Product_SlNo = sd.Product_IDNo
+                where sd.Status = 'a'
+                " . (isset($data->branchId) && $data->branchId != '' ? "and sd.SaleDetails_BranchId = '$data->branchId'": "and sd.SaleDetails_BranchId = '$this->branchId'") . " 
                 group by sd.Product_IDNo
                 order by sold_quantity desc
                 limit 5
-            ")->result();
+                ")->result();
 
             // Customer Due
             $customerDueResult = $this->mt->customerDue("", "", $data->branchId);

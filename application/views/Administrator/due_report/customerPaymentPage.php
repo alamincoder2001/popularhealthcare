@@ -219,7 +219,8 @@
 					CPayment_date: moment().format('YYYY-MM-DD'),
 					CPayment_amount: '',
 					CPayment_notes: '',
-					CPayment_previous_due: 0
+					CPayment_previous_due: 0,
+					SaleMaster_InvoiceNo: ''
 				},
 				payments: [],
 				customers: [],
@@ -230,7 +231,7 @@
 				},
 				invoices: [],
 				selectedInvoice : {
-					SaleMaster_InvoiceNo: 'Select Invoice',
+					SaleMaster_InvoiceNo: '',
 				},
 				employees: [],
 				selectedEmployee: {
@@ -283,11 +284,11 @@
 		},
 		methods:{
 			getCustomerPayments(){
-				let data = {
-					dateFrom: this.payment.CPayment_date,
-					dateTo: this.payment.CPayment_date
-				}
-				axios.post('/get_customer_payments', data).then(res => {
+				// let data = {
+				// 	dateFrom: this.payment.CPayment_date,
+				// 	dateTo: this.payment.CPayment_date
+				// }
+				axios.post('/get_customer_payments', {data: ''}).then(res => {
 					this.payments = res.data;
 				})
 			},
@@ -309,17 +310,17 @@
 				if(this.selectedCustomer == null || this.selectedCustomer.Customer_SlNo == undefined){
 					return;
 				}
-				// axios.post('/get_customer_due', {customerId: this.selectedCustomer.Customer_SlNo}).then(res => {
-				// 	this.payment.CPayment_previous_due = res.data[0].dueAmount;
-				// })
+				axios.post('/get_customer_due', {customerId: this.selectedCustomer.Customer_SlNo}).then(res => {
+					this.payment.CPayment_previous_due = res.data[0].dueAmount;
+				})
 
-				axios.post('/get_sales', {customerId: this.selectedCustomer.Customer_SlNo}).then(res => {
-					this.invoices = res.data.sales.filter(invoice => invoice.SaleMaster_DueAmount > 0)
+				axios.post('/get_customer_due_invoice', {customerId: this.selectedCustomer.Customer_SlNo}).then(res => {
+					this.invoices = res.data.filter(invoice => invoice.invoiceDue > 0)
 				})
 			},
 
 			getCustomerDue(){
-				this.payment.CPayment_previous_due = this.selectedInvoice.SaleMaster_DueAmount
+				this.payment.CPayment_previous_due = this.selectedInvoice.invoiceDue
 			},
 
 			getAccounts(){
@@ -343,13 +344,26 @@
 					alert('Select Customer');
 					return;
 				}
+				if(this.selectedInvoice == null || this.selectedInvoice.SaleMaster_InvoiceNo == ""){
+					alert('Select Invoice');
+					return;
+				}
 				if(this.selectedEmployee == null || this.selectedEmployee.Employee_SlNo == undefined){
 					alert('Select Employee');
 					return;
 				}
+				if(parseFloat(this.payment.CPayment_amount) > parseFloat(this.payment.CPayment_previous_due)){
+					alert("Payment amount does not greater than due")
+					return
+				}
+				if(parseFloat(this.payment.CPayment_amount) == 0 || parseFloat(this.payment.CPayment_amount) == ''){
+					alert("Amount field is required")
+					return
+				}
 
 				this.payment.CPayment_customerID = this.selectedCustomer.Customer_SlNo;
 				this.payment.CPayment_employeeID = this.selectedEmployee.Employee_SlNo;
+				this.payment.SaleMaster_InvoiceNo = this.selectedInvoice.SaleMaster_InvoiceNo;
 
 				let url = '/add_customer_payment';
 				if(this.payment.CPayment_id != 0){
@@ -384,6 +398,10 @@
 					Employee_SlNo: payment.CPayment_employeeID,
 					Employee_Name: payment.Employee_Name,
 				}
+				this.selectedInvoice = {
+					SaleMaster_InvoiceNo: payment.SaleMaster_InvoiceNo,
+					invoiceDue : payment.CPayment_previous_due
+				}
 
 				if(payment.CPayment_Paymentby == 'bank'){
 					this.selectedAccount = {
@@ -413,11 +431,10 @@
 				this.payment.CPayment_customerID = '';
 				this.payment.CPayment_amount = '';
 				this.payment.CPayment_notes = '';
-				
-				this.selectedCustomer = {
-					display_name: 'Select Customer',
-					Customer_Name: ''
-				}
+
+				this.selectedCustomer = null
+				this.selectedEmployee = null
+				this.selectedInvoice = null
 				
 				this.payment.CPayment_previous_due = 0;
 			}

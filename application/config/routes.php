@@ -128,6 +128,7 @@ $route['get_customer_payments'] = 'Administrator/Customer/getCustomerPayments';
 $route['add_customer_payment'] = 'Administrator/Customer/addCustomerPayment';
 $route['update_customer_payment'] = 'Administrator/Customer/updateCustomerPayment';
 $route['delete_customer_payment'] = 'Administrator/Customer/deleteCustomerPayment';
+$route['get_customer_due_invoice'] = 'Administrator/Customer/getInvoice';
 
 $route['customerPaymentPage'] = 'Administrator/Customer/customerPaymentPage';
 $route['customer_payment_history'] = 'Administrator/Customer/customerPaymentHistory';

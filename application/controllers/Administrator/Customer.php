@@ -79,13 +79,39 @@ class Customer extends CI_Controller
         if(isset($data->districtId) && $data->districtId != null){
             $clauses .= " and c.area_ID = '$data->districtId'";
         }
-        if(isset($data->employeeId) && $data->employeeId != null){
-            $clauses .= " and c.employee_ID = '$data->employeeId'";
+        if(isset($data->Derma_Id) && $data->Derma_Id != null){
+            $clauses .= " and c.Derma_Id = '$data->Derma_Id'";
+        }
+        if(isset($data->Healthcare_Id) && $data->Healthcare_Id != null){
+            $clauses .= " and c.Healthcare_Id = '$data->Healthcare_Id'";
+        }
+        if(isset($data->Nutrition_Id) && $data->Nutrition_Id != null){
+            $clauses .= " and c.Nutrition_Id = '$data->Nutrition_Id'";
         }
 
-        $dueResult = $this->mt->customerDue($clauses, $this->session->userdata('BRANCHid'));
+        $dueResult = $this->mt->customerDue($clauses, "", $this->session->userdata('BRANCHid'));
 
         echo json_encode($dueResult);
+    }
+
+    public function getInvoice(){
+        $data = json_decode($this->input->raw_input_stream);
+        $clauses = "";
+        if (isset($data->customerId) && $data->customerId != "") {
+            $clauses .= "AND sm.SalseCustomer_IDNo = '$data->customerId'";
+        }
+        $query = $this->db->query("SELECT
+                            sm.*,
+                            (SELECT IFNULL(SUM(cp.CPayment_amount), 0)
+                            FROM tbl_customer_payment cp 
+                            WHERE cp.CPayment_status = 'a'
+                            AND cp.CPayment_TransactionType = 'CR' 
+                            AND cp.SaleMaster_InvoiceNo = sm.SaleMaster_InvoiceNo) AS customerPamentAmount,
+                            (SELECT sm.SaleMaster_DueAmount - customerPamentAmount) AS invoiceDue
+                        FROM tbl_salesmaster sm
+                        WHERE sm.Status='a' $clauses")->result();
+                        
+        echo json_encode($query);
     }
 
     public function getCustomerPayments(){
@@ -178,7 +204,7 @@ class Customer extends CI_Controller
         try{
             $paymentObj = json_decode($this->input->raw_input_stream);
             $paymentId = $paymentObj->CPayment_id;
-    
+
             $payment = (array)$paymentObj;
             unset($payment['CPayment_id']);
             $payment['update_by'] = $this->session->userdata("FullName");

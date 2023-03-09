@@ -4,6 +4,7 @@
 	}
 	.v-select .dropdown-toggle{
 		padding: 0px;
+		height: 30px;
 	}
 	.v-select input[type=search], .v-select input[type=search]:focus{
 		margin: 0px;
@@ -28,40 +29,45 @@
 </style>
 
 <div class="row" id="customerDueList">
-	<div class="col-xs-12 col-md-12 col-lg-12" style="border-bottom:1px #ccc solid;">
+	<div class="col-xs-12 col-md-12 col-lg-12" style="border-bottom:1px #ccc solid;padding-bottom:5px;">
 		<div class="form-group">
-			<label class="col-sm-1 control-label no-padding-right">Search Type</label>
-			<div class="col-sm-2">
-				<select class="form-control" v-model="searchType" v-on:change="onChangeSearchType" style="padding:0px;">
+			<div class="col-xs-2">
+				<select class="form-select" v-model="searchType" v-on:change="onChangeSearchType" style="width:100%;">
 					<option value="all">All</option>
+					<option value="employee">By Employee</option>
 					<option value="customer">By Customer</option>
 					<option value="area">By Area</option>
-					<option value="employee">By Employee</option>
 				</select>
 			</div>
 		</div>
-		<div class="form-group" style="display: none" v-bind:style="{display: searchType == 'customer' ? '' : 'none'}">
-			<label class="col-sm-2 control-label no-padding-right">Select Customer</label>
-			<div class="col-sm-2">
+		<!-- reporting boss -->
+		<div class="form-group" v-if="searchType == 'employee'">
+			<div class="col-xs-2">
+				<v-select v-bind:options="reportingboss" v-model="selectedReportingboss" label="Employee_Name" placeholder="Select Reporting Boss"></v-select>
+			</div>
+		</div>
+		<!-- employee -->
+		<div class="form-group" v-if="searchType == 'employee'">
+			<div class="col-xs-2">
+				<v-select v-bind:options="employees" v-model="selectedEmployee" label="Employee_Name" placeholder="Select Employee"></v-select>
+			</div>
+		</div>
+		<!-- customer -->
+		<div class="form-group" v-if="searchType == 'customer' || selectedEmployee != null">
+			<div class="col-xs-2">
 				<v-select v-bind:options="customers" v-model="selectedCustomer" label="display_name" placeholder="Select customer"></v-select>
 			</div>
 		</div>
+		<!-- area -->
 		<div class="form-group" style="display: none" v-bind:style="{display: searchType == 'area' ? '' : 'none'}">
-			<label class="col-sm-1 control-label no-padding-right">Select Area</label>
-			<div class="col-sm-2">
+			<div class="col-xs-2">
 				<v-select v-bind:options="areas" v-model="selectedArea" label="District_Name" placeholder="Select area"></v-select>
-			</div>
-		</div>
-		<div class="form-group" style="display: none" v-bind:style="{display: searchType == 'employee' ? '' : 'none'}">
-			<label class="col-sm-1 control-label no-padding-right">Employee</label>
-			<div class="col-sm-2">
-				<v-select v-bind:options="employees" v-model="selectedEmployee" label="Employee_Name" placeholder="Select Employee"></v-select>
 			</div>
 		</div>
 
 		<div class="form-group">
-			<div class="col-sm-2">
-				<input type="button" class="btn btn-primary" value="Show Report" v-on:click="getDues" style="margin-top:0px;border:0px;height:28px;">
+			<div class="col-xs-2">
+				<input type="button" class="btn btn-primary" value="Show Report" v-on:click="getDues" style="border: 0px;height: 30px;padding: 0 10px;">
 			</div>
 		</div>
 	</div>
@@ -114,27 +120,54 @@
 		data(){
 			return {
 				searchType: 'all',
-				customers: [],
+				customers1: [],
 				selectedCustomer: null,
 				areas: [],
 				selectedArea: null,
-				employees: [],
+				reportingboss: [],
+				selectedReportingboss: null,
+				employees1: [],
 				selectedEmployee: null,
 				dues: [],
 				totalDue: 0.00
 			}
 		},
-		created(){
-
+		created() {
+			this.getCustomers();
+		},
+		computed: {
+			employees() {
+				if (this.selectedReportingboss != null) {
+					return this.employees1.filter(em => em.Reportingboss_Id == this.selectedReportingboss.Reportingboss_Id)
+				} else {
+					return this.employees1;
+				}
+			},
+			customers() {
+				if (this.selectedEmployee != null) {
+					return this.customers1.filter(cus => {
+						return cus.Derma_Id == this.selectedEmployee.Employee_SlNo || cus.Healthcare_Id == this.selectedEmployee.Employee_SlNo || cus.Nutrition_Id == this.selectedEmployee.Employee_SlNo;
+					})
+				} else {
+					return this.customers1;
+				}
+			}
 		},
 		methods:{
 			onChangeSearchType(){
 				if(this.searchType == 'customer' && this.customers.length == 0){
+					this.selectedArea = null;
+					this.selectedEmployee = null;
 					this.getCustomers();
 				} else if(this.searchType == 'area' && this.areas.length == 0) {
+					this.selectedCustomer = null;
+					this.selectedEmployee = null;
 					this.getAreas();
 				}else if(this.searchType == 'employee' && this.employees.length == 0) {
+					this.selectedArea = null;
+					this.selectedCustomer = null;
 					this.getEmployees();
+					this.getReportingBoss();
 				}
 				if(this.searchType == 'all'){
 					this.selectedCustomer = null;
@@ -142,9 +175,14 @@
 					this.selectedEmployee = null;
 				}
 			},
+			getReportingBoss() {
+				axios.get('/get_reporting_boss').then(res => {
+					this.reportingboss = res.data;
+				})
+			},
 			getCustomers(){
 				axios.get('/get_customers').then(res => {
-					this.customers = res.data;
+					this.customers1 = res.data;
 				})
 			},
 			getAreas() {
@@ -154,7 +192,7 @@
 			},
 			getEmployees(){
 				axios.get('/get_employees').then(res => {
-					this.employees = res.data;
+					this.employees1 = res.data;
 				})
 			},
 			getDues(){
@@ -168,10 +206,22 @@
 					return;
 				}
 
-				let customerId = this.selectedCustomer == null ? null : this.selectedCustomer.Customer_SlNo;
-				let districtId = this.selectedArea == null ? null : this.selectedArea.District_SlNo;
-				let employeeId = this.selectedEmployee == null ? null : this.selectedEmployee.Employee_SlNo;
-				axios.post('/get_customer_due', {customerId: customerId, districtId: districtId, employeeId: employeeId}).then(res => {
+				let data = {					
+					customerId: this.selectedCustomer == null ? null : this.selectedCustomer.Customer_SlNo,
+					districtId: this.selectedArea == null ? null : this.selectedArea.District_SlNo,
+				}
+				
+				if (this.searchType == 'employee') {
+					if (this.selectedEmployee.Department_ID == 1) {
+						data.Derma_Id = this.selectedEmployee.Employee_SlNo
+					}else if(this.selectedEmployee.Department_ID == 2){
+						data.Healthcare_Id = this.selectedEmployee.Employee_SlNo
+					}else{
+						data.Nutrition_Id = this.selectedEmployee.Employee_SlNo
+					}
+				}
+
+				axios.post('/get_customer_due', data).then(res => {
 					if(this.searchType == 'customer'){
 						this.dues = res.data;
 					} else {
