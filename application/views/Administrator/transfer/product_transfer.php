@@ -363,15 +363,15 @@
 
                 this.transfer = transfer;
 
-                // this.selectedEmployee = {
-                //     Employee_SlNo: transfer.transfer_by,
-                //     Employee_Name: transfer.transfer_by_name
-                // }
+                this.selectedEmployee = {
+                    Employee_SlNo: transfer.transfer_by,
+                    Employee_Name: transfer.transfer_by_name
+                }
 
-                // this.selectedBranch = {
-                //     brunch_id: transfer.transfer_to,
-                //     Brunch_name: transfer.transfer_to_name
-                // }
+                this.selectedBranch = {
+                    brunch_id: transfer.transfer_to,
+                    Brunch_name: transfer.transfer_to_name
+                }
 
                 let transferDetails = await axios.post('/get_transfer_details', {transferId: this.transfer.transfer_id}).then(res => {
                     return res.data;
