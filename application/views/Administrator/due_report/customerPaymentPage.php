@@ -60,7 +60,6 @@
 							<label class="col-md-1">:</label>
 							<div class="col-md-7">
 								<select class="form-control" v-model="payment.CPayment_TransactionType" required>
-									<option value=""></option>
 									<option value="CR">Receive</option>
 									<option value="CP">Payment</option>
 								</select>
@@ -98,7 +97,7 @@
 							<label class="col-md-4 control-label">Customer</label>
 							<label class="col-md-1">:</label>
 							<div class="col-md-6 col-xs-11">
-								<v-select v-bind:options="filterCustomers" v-model="selectedCustomer" label="display_name" @input="getCustomerInvoice" v-if="customers.length > 0"></v-select>
+								<v-select v-bind:options="filterCustomers" v-model="selectedCustomer" label="display_name" @input="getCustomerDue" v-if="customers.length > 0"></v-select>
 							</div>
 							<div class="col-md-1 col-xs-1" style="padding-left:0;margin-left: -3px;">
 								<a href="/customer" target="_blank" class="add-button"><i class="fa fa-plus"></i></a>
@@ -108,7 +107,7 @@
 							<label class="col-md-4 control-label">Invoice</label>
 							<label class="col-md-1">:</label>
 							<div class="col-md-7 col-xs-11">
-								<v-select v-bind:options="invoices" v-model="selectedInvoice" label="SaleMaster_InvoiceNo" @input="getCustomerDue"></v-select>
+								<v-select v-bind:options="invoices" v-model="selectedInvoice" label="SaleMaster_InvoiceNo" @input="getCustomerInvoice"></v-select>
 							</div>
 						</div>
 						
@@ -303,7 +302,7 @@
 					this.employees = res.data;
 				})
 			},
-			getCustomerInvoice(){
+			getCustomerDue(){
 				if(event.type == "click"){
 					return;
 				}
@@ -319,7 +318,7 @@
 				})
 			},
 
-			getCustomerDue(){
+			getCustomerInvoice(){
 				this.payment.CPayment_previous_due = this.selectedInvoice.invoiceDue
 			},
 

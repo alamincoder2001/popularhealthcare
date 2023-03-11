@@ -77,7 +77,10 @@
                             <td>{{ transfer.transfer_by_name }}</td>
                             <td>{{ transfer.transfer_from_name }}</td>
                             <td>{{ transfer.note }}</td>
-                            <td><a href="" v-bind:href="`/transfer_invoice/${transfer.transfer_id}`" target="_blank" title="View invoice"><i class="fa fa-file"></i></a></td>
+                            <td>
+                                <a :href="`${'product_transfer/'+transfer.transfer_id}`"><i class="fa fa-edit"></i></a>
+                                <a href="" v-bind:href="`/transfer_invoice/${transfer.transfer_id}`" target="_blank" title="View invoice"><i class="fa fa-file"></i></a>
+                            </td>
                         </tr>
                     </tbody>
                 </table>

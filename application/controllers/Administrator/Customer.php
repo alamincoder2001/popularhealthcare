@@ -94,22 +94,48 @@ class Customer extends CI_Controller
         echo json_encode($dueResult);
     }
 
+    public function customerDueInvoice(){
+        $access = $this->mt->userAccess();
+        if(!$access){
+            redirect(base_url());
+        }
+        $data['title'] = 'Customer Due Invoice';
+        $data['content'] = $this->load->view('Administrator/due_report/customer_due_invoice', $data, TRUE);
+        $this->load->view('Administrator/index', $data);
+    }
+
     public function getInvoice(){
         $data = json_decode($this->input->raw_input_stream);
         $clauses = "";
         if (isset($data->customerId) && $data->customerId != "") {
             $clauses .= "AND sm.SalseCustomer_IDNo = '$data->customerId'";
         }
+        if (isset($data->employeeId) && $data->employeeId != "") {
+            $clauses .= "AND sm.employee_id = '$data->employeeId'";
+        }
         $query = $this->db->query("SELECT
-                            sm.*,
+                            sm.SaleMaster_SlNo,
+                            sm.SaleMaster_InvoiceNo,
+                            sm.SaleMaster_SaleDate,
+                            sm.SaleMaster_TotalSaleAmount,
+                            sm.SaleMaster_PaidAmount,
+                            sm.SaleMaster_DueAmount,
+                            sm.SalseCustomer_IDNo,
+                            c.Customer_SlNo,
+                            c.Customer_Code,
+                            c.Customer_Name, 
                             (SELECT IFNULL(SUM(cp.CPayment_amount), 0)
                             FROM tbl_customer_payment cp 
                             WHERE cp.CPayment_status = 'a'
                             AND cp.CPayment_TransactionType = 'CR' 
-                            AND cp.SaleMaster_InvoiceNo = sm.SaleMaster_InvoiceNo) AS customerPamentAmount,
-                            (SELECT sm.SaleMaster_DueAmount - customerPamentAmount) AS invoiceDue
+                            AND cp.SaleMaster_InvoiceNo = sm.SaleMaster_InvoiceNo) AS customerPaymentAmount,
+                            (SELECT sm.SaleMaster_DueAmount - customerPaymentAmount) AS invoiceDue
                         FROM tbl_salesmaster sm
-                        WHERE sm.Status='a' $clauses")->result();
+                        LEFT JOIN tbl_customer c ON c.Customer_SlNo = sm.SalseCustomer_IDNo
+                        WHERE sm.Status='a'
+                        AND sm.SaleMaster_DueAmount > 0
+                        AND sm.SaleMaster_branchid='$this->cbrunch'
+                        $clauses")->result();
                         
         echo json_encode($query);
     }

@@ -149,8 +149,8 @@
 						</template>
 						<tr v-if="sales.length > 0" style="font-weight:bold;background:#454545;color:white;">
 							<td colspan="3" style="text-align:right;padding:5px;">Total:</td>
-							<td style="text-align:right;padding:5px;">{{ total_qty }}</td>
-							<td style="text-align:right;padding:5px;">{{(total_price).toFixed(2)}}</td>
+							<td style="text-align:right;padding:5px;">{{ sales.reduce((acc, product) => {product.reduce((ac, pre) => {return ac + +pre.quantity},0)},0) }}</td>
+							<td style="text-align:right;padding:5px;">{{ sales.reduce((acc, product) => {product.reduce((ac, pre) => {return ac + +parseFloat(pre.price)},0)},0).toFixed(2) }}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -215,24 +215,6 @@
 			}
 		},
 		computed: {
-			total_qty() {
-				let total = 0;
-				this.sales.forEach(pro => {
-					total += pro.products.reduce((acc, pre) => {
-						return acc + +pre.quantity;
-					}, 0)
-				})
-				return total;
-			},
-			total_price() {
-				let total = 0;
-				this.sales.forEach(pro => {
-					total += pro.products.reduce((acc, pre) => {
-						return acc + +parseFloat(pre.price);
-					}, 0)
-				})
-				return total;
-			},
 			employees() {
 				if (this.selectedReportingboss != null) {
 					return this.employees1.filter(em => em.Reportingboss_Id == this.selectedReportingboss.Reportingboss_Id)
@@ -316,6 +298,8 @@
 									}
 								})
 								.value();
+
+							this.sales = sales
 						} else {
 							sales = _.chain(sales)
 								.groupBy('Employee_SlNo')
@@ -327,8 +311,9 @@
 									}
 								})
 								.value();
+
+							this.sales = this.selectedEmployee != null ? sales.filter(e => e.Employee_SlNo == this.selectedEmployee.Employee_SlNo) : sales
 						}
-						this.sales = this.selectedEmployee != null ? sales.filter(e => e.Employee_SlNo == this.selectedEmployee.Employee_SlNo) : sales
 					})
 			},
 

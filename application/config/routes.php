@@ -291,6 +291,7 @@ $route['profitLossSearch'] = 'Administrator/Sales/profitLossSearch';
 $route['get_profit_loss'] = 'Administrator/Sales/getProfitLoss';
 $route['profitLossPrint'] = 'Administrator/Reports/profitLossPrint';
  
+$route['customerDueInvoice'] = 'Administrator/Customer/customerDueInvoice'; 
 $route['customerDue'] = 'Administrator/Customer/customer_due'; 
 $route['searchCustomerDue'] = 'Administrator/Customer/search_customer_due';
 $route['cusDuePrint/(:any)'] = 'Administrator/Reports/cusDuePrint/$1';
