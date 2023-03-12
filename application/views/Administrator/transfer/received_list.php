@@ -78,8 +78,8 @@
                             <td>{{ transfer.transfer_from_name }}</td>
                             <td>{{ transfer.note }}</td>
                             <td>
-                                <a :href="`${'product_transfer/'+transfer.transfer_id}`"><i class="fa fa-edit"></i></a>
-                                <a href="" v-bind:href="`/transfer_invoice/${transfer.transfer_id}`" target="_blank" title="View invoice"><i class="fa fa-file"></i></a>
+                                <a v-bind:href="`/transfer_invoice/${transfer.transfer_id}`" target="_blank" title="View invoice"><i class="fa fa-file"></i></a>
+                                <a v-if="currentBranchId == 1 && transfer.transfer_issue == null" :href="`product_transfer_reissue/${transfer.transfer_id}`" style="background: #edb7b7;padding: 0 5px;"><i class="fa fa-repeat"></i></a>
                             </td>
                         </tr>
                     </tbody>
@@ -100,6 +100,7 @@
         el: '#transferList',
         data(){
             return {
+                currentBranchId: "<?php echo $this->session->userdata('BRANCHid');?>",
                 filter: {
                     branch: null,
                     dateFrom: moment().format('YYYY-MM-DD'),

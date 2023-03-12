@@ -506,10 +506,10 @@ class Employee extends CI_Controller
         $query = $this->db->query("SELECT
                         re.*,
                         e.Employee_Name
-                    FROM
-                        tbl_reportingboss AS re
-                        LEFT JOIN tbl_employee AS e ON e.Employee_SlNo = re.Reportingboss_Id
-                    GROUP BY Reportingboss_Id")->result();
+                    FROM tbl_reportingboss re
+                    LEFT JOIN tbl_employee e ON e.Employee_SlNo = re.Reportingboss_Id
+                    WHERE re.branch_id = ?
+                    GROUP BY Reportingboss_Id", [$this->brunch])->result();
         echo json_encode($query);
     }
 

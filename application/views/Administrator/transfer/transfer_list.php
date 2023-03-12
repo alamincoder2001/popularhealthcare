@@ -103,6 +103,7 @@
         el: '#transferList',
         data(){
             return {
+                branchId: "<?php echo $this->session->userdata('BRANCHid');?>",
                 filter: {
                     branch: null,
                     dateFrom: moment().format('YYYY-MM-DD'),
@@ -132,6 +133,7 @@
                 } else {
                     this.filter.branch = null;
                 }
+                this.filter.branchId = this.branchId
 
                 axios.post('/get_transfers', this.filter).then(res => {
                     this.transfers = res.data;

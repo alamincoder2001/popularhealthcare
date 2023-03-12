@@ -20,6 +20,17 @@
             $data['content'] = $this->load->view('Administrator/transfer/product_transfer', $data, TRUE);
             $this->load->view('Administrator/index', $data);
         }
+        public function productTransferReissue($transferId){
+            $access = $this->mt->userAccess();
+            if(!$access){
+                redirect(base_url());
+            }
+
+            $data['transferId'] = $transferId;
+            $data['title'] = "Product Transfer Reissue";
+            $data['content'] = $this->load->view('Administrator/transfer/transfer_reissue', $data, TRUE);
+            $this->load->view('Administrator/index', $data);
+        }
 
         public function transferEdit($transferId){
             $access = $this->mt->userAccess();
@@ -35,15 +46,22 @@
 
         public function addProductTransfer(){
             $res = ['success'=>false, 'message'=>''];
-            try{
+            try{                
                 $data = json_decode($this->input->raw_input_stream);
+
+                if (isset($data->transfer->transferId) && $data->transfer->transferId != 0) {
+                    $transfer_issue = $data->transfer->transfer_issue;
+                    $transferId = $data->transfer->transferId;
+                    $this->db->query("UPDATE tbl_transfermaster tm SET tm.transfer_issue = '$transfer_issue' WHERE tm.transfer_id = '$transferId'");
+                }
+                
                 $transfer = array(
-                    'transfer_date' => $data->transfer->transfer_date,
-                    'transfer_by' => $data->transfer->transfer_by,
-                    'transfer_from' => $this->session->userdata('BRANCHid'),
-                    'transfer_to' => $data->transfer->transfer_to,
-                    'note' => $data->transfer->note,
-                    'total_amount' => $data->transfer->total_amount
+                    'transfer_date'  => $data->transfer->transfer_date,
+                    'transfer_by'    => $data->transfer->transfer_by,
+                    'transfer_from'  => $this->session->userdata('BRANCHid'),
+                    'transfer_to'    => $data->transfer->transfer_to,
+                    'note'           => $data->transfer->note,
+                    'total_amount'   => $data->transfer->total_amount,
                 );
 
                 $this->db->insert('tbl_transfermaster', $transfer);
@@ -228,6 +246,9 @@
             if(isset($data->transferId) && $data->transferId != ''){
                 $clauses .= " and tm.transfer_id = '$data->transferId'";
             }
+            if(isset($data->branchId) && $data->branchId != ''){
+                $clauses .= " and tm.transfer_from = '$data->branchId'";
+            }
 
             $transfers = $this->db->query("
                 select
@@ -237,8 +258,8 @@
                 from tbl_transfermaster tm
                 join tbl_brunch b on b.brunch_id = tm.transfer_to
                 join tbl_employee e on e.Employee_SlNo = tm.transfer_by
-                where tm.transfer_from = ? $clauses
-            ", $this->session->userdata('BRANCHid'))->result();
+                where 1=1 $clauses
+            ")->result();
 
             echo json_encode($transfers);
         }

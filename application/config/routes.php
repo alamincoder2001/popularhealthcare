@@ -470,6 +470,7 @@ $route['userName'] = 'Administrator/User_management/all_user_name';
 // Transfer
 $route['product_transfer'] = 'Administrator/Transfer/productTransfer';
 $route['product_transfer/(:any)'] = 'Administrator/Transfer/transferEdit/$1';
+$route['product_transfer_reissue/(:any)'] = 'Administrator/Transfer/productTransferReissue/$1';
 $route['add_product_transfer'] = 'Administrator/Transfer/addProductTransfer';
 $route['update_product_transfer'] = 'Administrator/Transfer/updateProductTransfer';
 $route['delete_transfer'] = 'Administrator/Transfer/deleteTransfer';

@@ -63,13 +63,15 @@
                                 <div class="form-group">
                                     <label class="control-label col-md-4" style="padding:0;">Transfer by</label>
                                     <div class="col-md-8">
-                                        <v-select v-bind:options="employees" v-model="selectedEmployee" label="Employee_Name"></v-select>
+                                        <select class="form-control" v-bind:style="{display: employees.length > 0 ? 'none' : ''}"></select>
+                                        <v-select v-bind:options="employees" v-model="selectedEmployee" label="Employee_Name" v-bind:style="{display: employees.length > 0 ? '' : 'none'}"></v-select>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label class="control-label col-md-4" style="padding:0;">Transfer to</label>
                                     <div class="col-md-8">
-                                        <v-select v-bind:options="branches" v-model="selectedBranch" label="Brunch_name"></v-select>
+                                        <select class="form-control" v-bind:style="{display: branches.length > 0 ? 'none' : ''}"></select>
+                                        <v-select v-bind:options="branches" v-model="selectedBranch" label="Brunch_name" v-bind:style="{display: branches.length > 0 ? '' : 'none'}"></v-select>
                                     </div>
                                 </div>
                             </div>
@@ -177,7 +179,7 @@
 
     <div class="row" style="display:none" v-bind:style="{display:cart.length > 0 ? '' : 'none'}">
         <div class="col-md-12">
-            <button class="btn btn-success pull-right" v-on:click="saveProductTransfer">Save</button>
+            <button class="btn btn-success pull-right" v-on:click="saveProductTransfer">Re Issue</button>
         </div>
     </div>
 </div>
@@ -193,15 +195,17 @@
         el: '#productTransfer',
         data() {
             return {
-                branchId: "<?php echo $this->session->userdata('BRANCHid');?>",
+                transferId: parseInt('<?php echo $transferId;?>'),
                 transfer: {
-                    transfer_id: parseInt('<?php echo $transferId;?>'),
+                    transfer_id: 0,
                     transfer_date: moment().format('YYYY-MM-DD'),
                     transfer_by: '',
                     transfer_from: '',
                     transfer_to: '',
                     note: '',
                     total_amount: 0.00,
+                    transfer_issue: "",
+                    transferId: 0,
                 },
                 cart: [],
                 employees: [],
@@ -220,7 +224,7 @@
             this.getBranches();
             this.getProducts();
 
-            if(this.transfer.transfer_id != 0) {
+            if(this.transferId != 0) {
                 await this.getTransfer();
             }
         },
@@ -332,15 +336,22 @@
                     return;
                 }
 
-                this.transfer.total_amount = this.cart.reduce((p, c) => { return p + +c.total }, 0);
-
-                this.transfer.transfer_by = this.selectedEmployee.Employee_SlNo;
-                this.transfer.transfer_to = this.selectedBranch.brunch_id;
+                if(this.transfer.transfer_issue == 'true'){
+                    alert('Already transfer this invoice');
+                    return
+                }
 
                 let data = {
                     transfer: this.transfer,
                     cart: this.cart
                 }
+
+                this.transfer.total_amount = this.cart.reduce((p, c) => { return p + +c.total }, 0);
+                this.transfer.transfer_by = this.selectedEmployee.Employee_SlNo;
+                this.transfer.transfer_to = this.selectedBranch.brunch_id;
+                this.transfer.transferId = this.transferId
+                this.transfer.transfer_issue = 'true'
+
 
                 let url = '/add_product_transfer';
                 if(this.transfer.transfer_id != 0) {
@@ -356,27 +367,15 @@
             },
 
             async getTransfer() {
-                let data = {
-                    transferId: this.transfer.transfer_id,
-                    branchId: this.branchId
-                }
-                let transfer = await axios.post('/get_transfers', data).then(res => {
+                let transfer = await axios.post('/get_transfers', {transferId: this.transferId}).then(res => {
                     return res.data[0];
                 })
 
-                this.transfer = transfer;
+                this.transfer.note          = transfer.note
+                this.transfer.total_amount  = transfer.total_amount
+                this.transfer.transfer_issue = transfer.transfer_issue
 
-                this.selectedEmployee = {
-                    Employee_SlNo: transfer.transfer_by,
-                    Employee_Name: transfer.transfer_by_name
-                }
-
-                this.selectedBranch = {
-                    brunch_id: transfer.transfer_to,
-                    Brunch_name: transfer.transfer_to_name
-                }
-
-                let transferDetails = await axios.post('/get_transfer_details', {transferId: this.transfer.transfer_id}).then(res => {
+                let transferDetails = await axios.post('/get_transfer_details', {transferId: this.transferId}).then(res => {
                     return res.data;
                 })
 

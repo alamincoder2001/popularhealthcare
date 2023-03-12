@@ -929,6 +929,16 @@ if ($module == 'dashboard' or $module == '') {
 			</li>
 		<?php endif; ?>
 
+		<?php if (array_search("customerDueInvoice", $access) > -1 || isset($CheckSuperAdmin) || isset($CheckAdmin)) : ?>
+			<li class="">
+				<a href="<?php echo base_url(); ?>customerDueInvoice">
+					<i class="menu-icon fa fa-list"></i>
+					<span class="menu-text">Due Invoice List</span>
+				</a>
+				<b class="arrow"></b>
+			</li>
+		<?php endif; ?>
+
 		<?php if (array_search("cash_view", $access) > -1 || isset($CheckSuperAdmin) || isset($CheckAdmin)) : ?>
 			<li class="">
 				<a href="<?php echo base_url(); ?>cash_view">
