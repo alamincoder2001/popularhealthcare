@@ -87,27 +87,27 @@
 				</div>
 
 
-				<div class="form-group" style="display:none;" v-bind:style="{display: searchType == 'employee' && employees.length > 0 ? '' : 'none'}">
+				<div class="form-group" v-if="searchType == 'employee'">
 					<label>Employee</label>
 					<v-select v-bind:options="employees" v-model="selectedEmployee" label="Employee_Name" @input="filterCustomer"></v-select>
 				</div>
 
-				<div class="form-group" style="display:none;" v-bind:style="{display: searchType == 'customer' && customers.length > 0 ||  searchType == 'quantity' || selectedEmployee != null ? '' : 'none'}">
+				<div class="form-group" v-if="searchType == 'customer' || selectedEmployee != null">
 					<label>Customer</label>
 					<v-select v-bind:options="customers" v-model="selectedCustomer" label="display_name"></v-select>
 				</div>
 
-				<div class="form-group" style="display:none;" v-bind:style="{display: searchType == 'quantity' && products.length > 0 ? '' : 'none'}">
+				<div class="form-group" style="display:none;" v-if="searchType == 'quantity'">
 					<label>Product</label>
 					<v-select v-bind:options="products" v-model="selectedProduct" label="display_text" @input="sales = []"></v-select>
 				</div>
 
-				<div class="form-group" style="display:none;" v-bind:style="{display: searchType == 'category' && categories.length > 0 ? '' : 'none'}">
+				<div class="form-group" v-if="searchType == 'category'">
 					<label>Category</label>
 					<v-select v-bind:options="categories" v-model="selectedCategory" label="ProductCategory_Name"></v-select>
 				</div>
 
-				<div class="form-group" style="display:none;" v-bind:style="{display: searchType == 'user' && users.length > 0 ? '' : 'none'}">
+				<div class="form-group" v-if="searchType == 'user'">
 					<label>User</label>
 					<v-select v-bind:options="users" v-model="selectedUser" label="FullName"></v-select>
 				</div>
@@ -389,6 +389,11 @@
 			},
 			onChangeSearchType() {
 				this.sales = [];
+				this.selectedProduct = null;
+				this.selectedCategory = null;
+				this.selectedEmployee = null;
+				this.selectedCustomer = null;
+
 				if (this.searchType == 'quantity') {
 					this.getProducts();
 					this.getCustomers();
@@ -428,21 +433,17 @@
 				})
 			},
 			getSearchResult() {
-				// if(this.searchType != 'customer'){
-				// 	this.selectedCustomer = null;
+				// if (this.searchType != 'employee') {
+				// 	this.selectedEmployee = null;
+				// }
+				
+				// if (this.searchType != 'quantity') {
+				// 	this.selectedCategory = null;
 				// }
 
-				if (this.searchType != 'employee') {
-					this.selectedEmployee = null;
-				}
-
-				if (this.searchType != 'quantity') {
-					this.selectedProduct = null;
-				}
-
-				if (this.searchType != 'category') {
-					this.selectedCategory = null;
-				}
+				// if (this.searchType != 'category') {
+				// 	this.selectedCategory = null;
+				// }
 
 				if (this.searchTypesForRecord.includes(this.searchType)) {
 					this.getSalesRecord();
