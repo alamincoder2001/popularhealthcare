@@ -341,6 +341,7 @@ $route['employeeEdit/(:any)'] = 'Administrator/Employee/employee_edit/$1';
 $route['employeeUpdate'] = 'Administrator/Employee/employee_Update';
 $route['employeeDelete'] = 'Administrator/Employee/employee_Delete';
 $route['employeeActive'] = 'Administrator/Employee/active';
+$route['get_reporting_boss'] = 'Administrator/Employee/get_reporting_boss';
 // $route['salarypayment'] = 'Administrator/Employee/employeesalarypayment';
 // $route['add_employee_payment'] = 'Administrator/Employee/addEmployeePayment';
 // $route['update_employee_payment'] = 'Administrator/Employee/updateEmployeePayment';
@@ -583,4 +584,4 @@ $route['get_batchs'] = 'Administrator/Sales/getBatch';
 
 // get report
 $route['get_totalquantity'] = 'Administrator/Sales/getTotalQty';
-$route['get_reporting_boss'] = 'Administrator/Employee/get_reporting_boss';
+
