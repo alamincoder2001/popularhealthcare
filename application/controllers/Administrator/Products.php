@@ -711,14 +711,13 @@ class Products extends CI_Controller {
                 'd' as sequence, 
                 srd.SaleReturnDetails_SlNo as id,
                 sr.SaleReturn_ReturnDate as date,
-                concat('Sale Return - ', sr.SaleMaster_InvoiceNo, ' - ', c.Customer_Name) as description,
+                concat('Sale Return - ', c.Customer_Name) as description,
                 (srd.SaleReturnDetails_ReturnAmount / srd.SaleReturnDetails_ReturnQuantity) as rate,
                 srd.SaleReturnDetails_ReturnQuantity as in_quantity,
                 0 as out_quantity
             from tbl_salereturndetails srd
             join tbl_salereturn sr on sr.SaleReturn_SlNo = srd.SaleReturn_IdNo
-            join tbl_salesmaster sm on sm.SaleMaster_InvoiceNo = sr.SaleMaster_InvoiceNo
-            join tbl_customer c on c.Customer_SlNo = sm.SalseCustomer_IDNo
+            join tbl_customer c on c.Customer_SlNo = sr.customerId
             where srd.Status = 'a'
             and srd.SaleReturnDetailsProduct_SlNo = " . $data->productId . "
             and srd.SaleReturnDetails_brunchID = " . $this->brunch . "

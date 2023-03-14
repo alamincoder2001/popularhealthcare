@@ -1,278 +1,347 @@
 <style>
-	.v-select{
-		margin-top:-2.5px;
-        float: right;
-        min-width: 180px;
-        margin-left: 5px;
+	.v-select {
+		margin-top: -2.5px;
+		float: right;
+		width: 100%;
+		margin-left: 5px;
 	}
-	.v-select .dropdown-toggle{
+
+	.v-select .dropdown-toggle {
 		padding: 0px;
-        height: 25px;
+		height: 28px;
 	}
-	.v-select input[type=search], .v-select input[type=search]:focus{
+
+	.v-select input[type=search],
+	.v-select input[type=search]:focus {
 		margin: 0px;
 	}
-	.v-select .vs__selected-options{
+
+	.v-select .vs__selected-options {
 		overflow: hidden;
-		flex-wrap:nowrap;
+		flex-wrap: nowrap;
 	}
-	.v-select .selected-tag{
+
+	.v-select .selected-tag {
 		margin: 2px 0px;
 		white-space: nowrap;
-		position:absolute;
+		position: absolute;
 		left: 0px;
 	}
-	.v-select .vs__actions{
-		margin-top:-5px;
+
+	.v-select .vs__actions {
+		margin-top: -5px;
 	}
-	.v-select .dropdown-menu{
+
+	.v-select .dropdown-menu {
 		width: auto;
-		overflow-y:auto;
+		overflow-y: auto;
 	}
-	#searchForm select{
-		padding:0;
+
+	#searchForm select {
+		padding: 0;
 		border-radius: 4px;
 	}
-	#searchForm .form-group{
+
+	#searchForm .form-group {
 		margin-right: 5px;
 	}
-	#searchForm *{
+
+	#searchForm * {
 		font-size: 13px;
 	}
 </style>
 
 <div class="row" id="salesReturn">
-	<div class="col-md-12" style="border-bottom: 1px solid #ccc;padding: 3px 0;">
-		<form class="form-inline" id="searchForm">
-			<div class="form-group" style="display:none;" v-bind:style="{display: customers.length > 0 ? '' : 'none'}">
-				<label>Customer</label>
-				<v-select v-bind:options="customers" label="display_name" v-model="selectedCustomer" v-on:input="getInvoices" v-bind:disabled="salesReturn.returnId == 0 ? false : true"></v-select>
-			</div>
+	<div class="col-12">
+		<div class="widget-box ">
+			<div class="widget-header rhcolor">
+				<h4 class="widget-title">Return Information</h4>
+				<div class="widget-toolbar">
+					<a href="#" data-action="collapse">
+						<i class="ace-icon fa fa-chevron-up"></i>
+					</a>
 
-			<div class="form-group">
-				<label>Date</label>
-				<input type="date" v-model="salesDate">
-			</div>
-
-			<div class="form-group">
-				<label>Invoice</label>
-				<v-select v-bind:options="filterInvoices" label="SaleMaster_InvoiceNo" v-model="selectedInvoice" v-bind:disabled="salesReturn.returnId == 0 ? false : true"></v-select>
-			</div>
-			<div class="form-group">
-				<button type="button" class="btn btn-info btn-xs" style="width: 100px;" @click="getSaleDetailsForReturn" v-bind:disabled="salesReturn.returnId == 0 ? false : true">View</button>
-			</div>
-		</form>
-	</div>
-	<div style="display:none;" v-bind:style="{display: cart.length > 0 ? '' : 'none'}">
-		<div class="col-xs-12 col-md-12 col-lg-12">
-			<br>
-			<div class="col-md-6">
-				Return date: <input type="date" v-model="salesReturn.returnDate" v-bind:disabled="userType == 'u' ? true : false"><br><br>
-				Invoice Discount: {{ selectedInvoice.SaleMaster_TotalDiscountAmount }}
-			</div>
-			<div class="col-md-6 text-right">
-				<h4 style="margin:0px;padding:0px;">Customer Information</h4>
-				Name: {{ selectedInvoice.Customer_Name }}<br>
-				Address: {{ selectedInvoice.Customer_Address }}<br>
-				Mobile: {{ selectedInvoice.Customer_Mobile }}
-			</div>
-			<div class="col-md-12">
-				<div class="table-responsive">
-					<table class="table table-bordered">
-						<thead>
-							<tr>
-								<th>Sl</th>
-								<th>Product</th>
-								<th>Batch No</th>
-								<th>Quantity</th>
-								<th>Amount</th>
-								<th>Already returned quantity</th>
-								<th>Already returned amount</th>
-								<th>Return Quantity</th>
-								<th>Return Rate</th>
-								<th>Return Amount</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr v-for="(product, sl) in cart">
-								<td>{{ sl + 1 }}</td>
-								<td>{{ product.Product_Name }}</td>
-								<td>{{ product.Batch_No }}</td>
-								<td>{{ product.SaleDetails_TotalQuantity }}</td>
-								<td>{{ product.SaleDetails_TotalAmount }}</td>
-								<td>{{ product.returned_quantity }}</td>
-								<td>{{ product.returned_amount }}</td>
-								<td><input type="text" v-model="product.return_quantity" v-on:input="productReturnTotal(sl)"></td>
-								<td><input type="text" v-model="product.return_rate" v-on:input="productReturnTotal(sl)"></td>
-								<td>{{ product.return_amount }}</td>
-							</tr>
-						</tbody>
-						<tfoot>
-							<tr>
-								<td colspan="5" style="text-align:right;padding-top:15px;">Note</td>
-								<td colspan="3">
-									<textarea style="width: 100%" v-model="salesReturn.note"></textarea>
-								</td>
-								<td>
-									<button class="btn btn-success pull-left" v-on:click="saveSalesReturn">Save</button>
-								</td>
-								<td>Total: {{ salesReturn.total }}</td>
-							</tr>
-						</tfoot>
-					</table>
+					<a href="#" data-action="close">
+						<i class="ace-icon fa fa-times"></i>
+					</a>
 				</div>
-	
+			</div>
+
+			<div class="widget-body" style="background:#fff6f6">
+				<div class="widget-main">
+					<div class="row">
+						<div class="col-xs-12 col-lg-5">
+							<form v-on:submit.prevent="addToCartReturn">
+								<div class="form-group">
+									<label class="col-xs-3 control-label no-padding-right"> Return Date </label>
+									<div class="col-xs-9">
+										<input type="date" class="form-control" v-model="salesReturn.returnDate">
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-xs-3 control-label no-padding-right" style="margin-top: 3px;"> Customer </label>
+									<div class="col-xs-9" style="margin-top: 3px;">
+										<v-select id="customer" v-bind:options="customers" v-model="selectedCustomer" label="display_name"></v-select>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-xs-3 control-label no-padding-right" style="margin-top: 8px;"> Product </label>
+									<div class="col-xs-9" style="margin-top: 8px;">
+										<v-select id="product" v-bind:options="products" v-model="selectedProduct" label="display_text" @input="onChangeProduct"></v-select>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-xs-3 control-label no-padding-right" style="margin-top: 5px;"> Quantity </label>
+									<div class="col-xs-9" style="margin-top: 5px;">
+										<input type="number" min="0" step="0.01" placeholder="Qty" class="form-control" @input="productReturnTotal" id="quantity" v-model="selectedProduct.quantity" autocomplete="off" />
+									</div>
+								</div>
+
+								<div class="form-group">
+									<label class="col-xs-3 control-label no-padding-right"> Sale Rate </label>
+									<div class="col-xs-9">
+										<input type="number" id="salesRate" placeholder="Rate" step="0.01" class="form-control" @input="productReturnTotal" ref="rate" v-model="selectedProduct.Product_SellingPrice" />
+									</div>
+								</div>
+
+								<div class="form-group">
+									<label class="col-xs-3 control-label no-padding-right"> Batch No. </label>
+									<div class="col-xs-9">
+										<input type="text" placeholder="Batch" class="form-control" v-model="selectedProduct.Batch_No" />
+									</div>
+								</div>
+
+
+								<div class="form-group">
+									<label class="col-xs-3 control-label no-padding-right"> Amount </label>
+									<div class="col-xs-9">
+										<input type="text" id="productTotal" placeholder="Amount" class="form-control" v-model="selectedProduct.total" readonly />
+									</div>
+								</div>
+
+								<div class="form-group">
+									<label class="col-xs-3 control-label no-padding-right"> </label>
+									<div class="col-xs-9">
+										<button type="submit" class="btn btn-default pull-right">Add to Cart</button>
+									</div>
+								</div>
+							</form>
+						</div>
+
+						<div class="col-xs-12 col-lg-7">
+							<div class="table-responsive">
+								<table class="table table-bordered" style="color:#000;margin-bottom: 5px;">
+									<thead>
+										<tr class="">
+											<th style="width:3%;color:#000;">Sl</th>
+											<th style="width:20%;color:#000;">Product Name</th>
+											<th style="width:8%;color:#000;">Batch_No</th>
+											<th style="width:3%;color:#000;">Qty</th>
+											<th style="width:2%;color:#000;">Rate</th>
+											<th style="width:6%;color:#000;">Total Amount</th>
+											<th style="width:0%;color:#000;">Action</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr v-for="(product, sl) in cart">
+											<td>{{ sl + 1 }}</td>
+											<td>{{ product.productCode }} - {{ product.name }}</td>
+											<td>{{product.Batch_No}}</td>
+											<td>{{ product.quantity }}</td>
+											<td>{{ product.salesRate }}</td>
+											<td>{{ product.total }}</td>
+											<td><a href="" v-on:click.prevent="removeFromReturnCart(sl)"><i class="fa fa-trash"></i></a></td>
+										</tr>
+
+										<tr style="font-weight: bold">
+											<td style="text-align:right" colspan="3">Total = </td>
+											<td style="text-align:center">{{ cart.reduce((prev,curr)=> {return prev + +curr.quantity},0) }} </td>
+											<td style="text-align:center"></td>
+											<td style="text-align:center"></td>
+											<td style="text-align:center"></td>
+										</tr>
+
+										<tr>
+											<td colspan="7"></td>
+										</tr>
+
+										<tr style="font-weight: bold;">
+											<td colspan="4">Note</td>
+											<td colspan="3">Total</td>
+										</tr>
+
+										<tr>
+											<td colspan="4">
+												<textarea class="form-control" v-model="salesReturn.note"></textarea>
+											</td>
+											<td colspan="3" style="padding-top: 15px;font-size:18px;">{{ cart.reduce((prev,curr)=> {return prev + +curr.total},0) }}</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div style="text-align:right;margin-top: 10px;">
+								<button @click="saveSalesReturn" class="btn btn-success btn-sm text-white">Save Return</button>
+							</div>
+						</div>
+
+					</div>
+				</div>
 			</div>
 		</div>
-
 	</div>
 </div>
 
-<script src="<?php echo base_url();?>assets/js/vue/vue.min.js"></script>
-<script src="<?php echo base_url();?>assets/js/vue/axios.min.js"></script>
-<script src="<?php echo base_url();?>assets/js/vue/vue-select.min.js"></script>
-<script src="<?php echo base_url();?>assets/js/moment.min.js"></script>
+<script src="<?php echo base_url(); ?>assets/js/vue/vue.min.js"></script>
+<script src="<?php echo base_url(); ?>assets/js/vue/axios.min.js"></script>
+<script src="<?php echo base_url(); ?>assets/js/vue/vue-select.min.js"></script>
+<script src="<?php echo base_url(); ?>assets/js/moment.min.js"></script>
 
 <script>
 	Vue.component('v-select', VueSelect.VueSelect);
 	new Vue({
 		el: '#salesReturn',
-		data(){
+		data() {
 			return {
 				customers: [],
-				selectedCustomer: null,
-				salesDate: '',
-				invoices: [],
-				filterInvoices: [],
-				selectedInvoice: {
-					SaleMaster_InvoiceNo: '',
-					SalseCustomer_IDNo: null,
-					Customer_Name: '',
-					Customer_Mobile: '',
-					Customer_Address: '',
-					SaleMaster_TotalDiscountAmount: 0
+				selectedCustomer: {
+					Customer_SlNo: '',
+					display_name: 'Select Customer',
+				},
+				products: [],
+				selectedProduct: {
+					Product_SlNo: '',
+					display_text: 'Select Product',
+					Product_Name: '',
+					Batch_No: '',
+					quantity: 0,
+					Product_SellingPrice: 0.00,
+					total: 0.00
 				},
 				cart: [],
 				salesReturn: {
-					returnId: parseInt('<?php echo $returnId;?>'),
+					returnId: parseInt('<?php echo $returnId; ?>'),
 					returnDate: moment().format('YYYY-MM-DD'),
+					customerId: "",
 					total: 0.00,
 					note: ''
 				},
-				userType: '<?php echo $this->session->userdata("accountType");?>'
+				userType: '<?php echo $this->session->userdata("accountType"); ?>'
 			}
 		},
-		watch: {
-			salesDate(date) {
-				if(date == undefined) return;
-				let invoice = this.invoices.filter(item => item.SaleMaster_SaleDate == date);
-				this.filterInvoices = invoice;
-			}
-		},
-		created(){
+		created() {
 			this.getCustomers();
-			if(this.salesReturn.returnId != 0) {
-				this.getReturn();
+			this.getProducts();
+			if (this.salesReturn.returnId != 0) {
+				this.getSaleReturn()
 			}
 		},
-		methods:{
+		methods: {
 			getCustomers() {
 				axios.get('/get_customers').then(res => {
 					this.customers = res.data;
 					this.customers.unshift({
-						Customer_SlNo: null,
+						Customer_SlNo: '',
 						Customer_Name: 'General Customers',
 						Customer_Type: 'G',
 						display_name: 'General Customers'
 					})
 				})
 			},
-			getInvoices(){
-				if(event.type == 'readystatechange') {
-					return;
-				}
-				this.selectedInvoice = {
-					SaleMaster_InvoiceNo: '',
-					SalseCustomer_IDNo: null,
-					Customer_Name: '',
-					Customer_Mobile: '',
-					Customer_Address: '',
-					SaleMaster_TotalDiscountAmount: 0
-				}
-				this.invoices = [];
-				this.filterInvoices = [];
-				if(this.selectedCustomer == null) {
-					return;
-				}
 
-				if(this.selectedCustomer.Customer_Type == 'G') {
-					arg = { customerType: 'G' }
-				} else {
-					arg = { 
-						customerId: this.selectedCustomer.Customer_SlNo 
-					}
-				}
-
-				axios.post('/get_sales', arg).then(res => {
-					this.invoices = res.data.sales;
-					this.filterInvoices = res.data.sales;
+			getProducts() {
+				axios.get('/get_products').then(res => {
+					this.products = res.data;
 				})
 			},
-			async getSaleDetailsForReturn(){
-				if(this.selectedInvoice.SaleMaster_InvoiceNo == ''){
+
+			productReturnTotal() {
+				this.selectedProduct.total = (parseFloat(this.selectedProduct.quantity) * parseFloat(this.selectedProduct.Product_SellingPrice)).toFixed(2);
+			},
+
+			onChangeProduct() {
+				if (this.selectedProduct.Product_SlNo == '') {
+					return
+				}
+
+				axios.post('/get_batchs', {
+						productId: this.selectedProduct.Product_SlNo
+					})
+					.then(res => {
+						this.batches = res.data.filter(item => item.curQty > 0);
+					})
+				document.querySelector("#quantity").focus();
+			},
+
+			addToCartReturn() {
+				let product = {
+					productId: this.selectedProduct.Product_SlNo,
+					productCode: this.selectedProduct.Product_Code,
+					name: this.selectedProduct.Product_Name,
+					Batch_No: this.selectedProduct.Batch_No,
+					salesRate: this.selectedProduct.Product_SellingPrice,
+					quantity: this.selectedProduct.quantity,
+					total: this.selectedProduct.total,
+				}
+
+				if (product.productId == '') {
+					alert('Select Product');
 					return;
 				}
-				await axios.post('/get_saledetails_for_return', {salesId: this.selectedInvoice.SaleMaster_SlNo}).then(res=>{
-					this.cart = res.data;
-				})
-			},
-			productReturnTotal(ind){
-				if(this.cart[ind].return_quantity > (this.cart[ind].SaleDetails_TotalQuantity - this.cart[ind].returned_quantity)){
-					alert('Return quantity is not valid');
-					this.cart[ind].return_quantity = '';
-				}
-
-				if(parseFloat(this.cart[ind].return_rate) > parseFloat(this.cart[ind].SaleDetails_Rate)){
-					alert('Rate is not valid');
-					this.cart[ind].return_rate = '';
-				}
-				this.cart[ind].return_amount = parseFloat(this.cart[ind].return_quantity) * parseFloat(this.cart[ind].return_rate);
-				this.calculateTotal();
-			},
-			calculateTotal(){
-				this.salesReturn.total = this.cart.reduce((prev, cur) => {return prev + (cur.return_amount ? parseFloat(cur.return_amount) : 0.00)}, 0);
-			},
-			saveSalesReturn(){
-				let filteredCart = this.cart.filter(product => product.return_quantity > 0 && product.return_rate > 0);
-
-				if(filteredCart.length == 0){
-					alert('No products to return');
+				if (product.Batch_No == undefined) {
+					alert('Batch No required');
 					return;
 				}
 
-				if(this.salesReturn.returnDate == null || this.salesReturn.returnDate == ''){
-					alert('Enter date');
+				if (product.quantity == 0 || product.quantity == '') {
+					alert('Enter quantity');
 					return;
 				}
 
+				if (product.salesRate == 0 || product.salesRate == '') {
+					alert('Enter sales rate');
+					return;
+				}
+
+				let cartInd = this.cart.findIndex(p => p.productId == product.productId);
+				if (cartInd > -1) {
+					this.cart.splice(cartInd, 1);
+				}
+				this.cart.unshift(product);
+				this.clearReturnProduct();
+				document.querySelector('#product input[role="combobox"]').focus();
+				this.salesReturn.total = this.cart.reduce((acc, pre) => {
+					return acc + +parseFloat(pre.total)
+				}, 0).toFixed(2);
+			},
+
+			removeFromReturnCart(ind) {
+				this.cart.splice(ind, 1);
+			},
+
+			saveSalesReturn() {
+				if (this.selectedCustomer.Customer_SlNo == '') {
+					alert("Please select customer")
+					document.querySelector("#customer [type='search']").focus()
+					return
+				}
+				this.salesReturn.customerId = this.selectedCustomer.Customer_SlNo
 				let data = {
-					invoice: this.selectedInvoice,
 					salesReturn: this.salesReturn,
-					cart: filteredCart
+					cart: this.cart,
 				}
 
 				let url = '/add_sales_return';
-				if(this.salesReturn.returnId != 0) {
+				if (this.salesReturn.returnId != 0) {
 					url = '/update_sales_return';
 				}
 
-				axios.post(url, data).then(async res=>{
+				axios.post(url, data).then(async res => {
 					let r = res.data;
 					alert(r.message);
-					if(r.success){
+					if (r.success) {
 						let conf = confirm('Success. Do you want to view invoice?');
-						if(conf){
-							window.open('/sale_return_invoice/'+r.id, '_blank');
+						if (conf) {
+							window.open('/sale_return_invoice/' + r.id, '_blank');
 							await new Promise(r => setTimeout(r, 1000));
 							window.location = '/salesReturn';
 						} else {
@@ -281,46 +350,49 @@
 					}
 				})
 			},
-			async getReturn() {
-				let returnData = await axios.post('/get_sale_returns', { id: this.salesReturn.returnId }).then(res => {
-					return res.data;
-				})
 
-				let saleReturn = returnData.returns?.[0];
-
-				this.selectedCustomer = {
-					Customer_SlNo: saleReturn.Customer_SlNo,
-					Customer_Name: saleReturn.Customer_Name,
-					Customer_Code: saleReturn.Customer_Code,
-					Customer_Mobile: saleReturn.Customer_Mobile,
-					display_name: `${saleReturn.Customer_Code} - ${saleReturn.Customer_Name} - ${saleReturn.owner_name}`
+			clearReturnProduct() {
+				this.selectedProduct = {
+					Product_SlNo: '',
+					display_text: 'Select Product',
+					Product_Name: '',
+					Unit_Name: '',
+					quantity: 0,
+					Product_SellingPrice: 0.00,
+					total: 0.00
 				}
+			},
 
-				this.selectedInvoice = {
-					SaleMaster_SlNo: saleReturn.SaleMaster_SlNo,
-					SaleMaster_InvoiceNo: saleReturn.SaleMaster_InvoiceNo,
-					SalseCustomer_IDNo: saleReturn.Customer_SlNo,
-					Customer_Name: saleReturn.Customer_Name,
-					Customer_Mobile: saleReturn.Customer_Mobile,
-					Customer_Address: saleReturn.Customer_Address,
-					SaleMaster_TotalDiscountAmount: saleReturn.SaleMaster_TotalDiscountAmount
-				}
+			getSaleReturn() {
+				axios.post("/get_sale_returns", {
+						id: this.salesReturn.returnId
+					})
+					.then(res => {
+						this.salesReturn = {
+							returnId: res.data.returns[0].SaleReturn_SlNo,
+							returnDate: res.data.returns[0].SaleReturn_ReturnDate,
+							customerId: res.data.returns[0].customerId,
+							total: res.data.returns[0].SaleReturn_ReturnAmount,
+							note: res.data.returns[0].SaleReturn_Description
+						}
+						res.data.returnDetails.forEach(p => {
+							let prod = {
+								productId: p.SaleReturnDetailsProduct_SlNo,
+								productCode: p.Product_Code,
+								name: p.Product_Name,
+								Batch_No: p.Batch_No,
+								salesRate: p.SaleReturnDetails_ReturnAmount / p.SaleReturnDetails_ReturnQuantity,
+								quantity: p.SaleReturnDetails_ReturnQuantity,
+								total: p.SaleReturnDetails_ReturnAmount,
+							}
+							this.cart.push(prod)
+						})
 
-				this.salesReturn.returnDate = saleReturn.SaleReturn_ReturnDate;
-				this.salesReturn.total = saleReturn.SaleReturn_ReturnAmount;
-				this.salesReturn.note = saleReturn.SaleReturn_Description;
-
-				await this.getSaleDetailsForReturn();
-
-				this.cart.map(product => {
-					let returnDetail = returnData.returnDetails.find(rd => rd.SaleReturnDetailsProduct_SlNo == product.Product_IDNo);
-					product.return_quantity = returnDetail?.SaleReturnDetails_ReturnQuantity;
-					product.returned_quantity = product.returned_quantity - (returnDetail?.SaleReturnDetails_ReturnQuantity ?? 0);
-					product.return_amount = returnDetail?.SaleReturnDetails_ReturnAmount;
-					product.returned_amount = product.returned_amount - (returnDetail?.SaleReturnDetails_ReturnAmount ?? 0);
-					return product;
-				})
-
+						this.selectedCustomer = {
+							Customer_SlNo: res.data.returns[0].customerId,
+							display_name: res.data.returns[0].display_name,
+						}
+					})
 			}
 		}
 	})

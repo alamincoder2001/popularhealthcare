@@ -79,7 +79,7 @@
                             <td>{{ transfer.note }}</td>
                             <td>
                                 <a v-bind:href="`/transfer_invoice/${transfer.transfer_id}`" target="_blank" title="View invoice"><i class="fa fa-file"></i></a>
-                                <a v-if="currentBranchId == 1 && transfer.transfer_issue == null" :href="`product_transfer_reissue/${transfer.transfer_id}`" style="background: #edb7b7;padding: 0 5px;"><i class="fa fa-repeat"></i></a>
+                                <a title="Product Transfer Reissue" v-if="currentBranchId == 1 && transfer.transfer_issue == null" :href="`product_transfer_reissue/${transfer.transfer_id}`" style="background: #edb7b7;padding: 0 5px;"><i class="fa fa-repeat"></i></a>
                             </td>
                         </tr>
                     </tbody>

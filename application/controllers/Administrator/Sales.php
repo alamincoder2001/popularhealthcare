@@ -528,64 +528,59 @@ class Sales extends CI_Controller
         $res = ['success' => false, 'message' => ''];
         try {
             $data = json_decode($this->input->raw_input_stream);
-            // echo "<pre>";
-            // print_r($data->cart);
             $salesReturn = array(
-                'SaleMaster_InvoiceNo' => $data->invoice->SaleMaster_InvoiceNo,
-                'SaleReturn_ReturnDate' => $data->salesReturn->returnDate,
+                'customerId'              => $data->salesReturn->customerId,
+                'SaleReturn_ReturnDate'   => $data->salesReturn->returnDate,
                 'SaleReturn_ReturnAmount' => $data->salesReturn->total,
-                'SaleReturn_Description' => $data->salesReturn->note,
-                'Status' => 'a',
-                'AddBy' => $this->session->userdata("FullName"),
-                'AddTime' => date('Y-m-d H:i:s'),
-                'SaleReturn_brunchId' => $this->session->userdata("BRANCHid")
+                'SaleReturn_Description'  => $data->salesReturn->note,
+                'Status'                  => 'a',
+                'AddBy'                   => $this->session->userdata("FullName"),
+                'AddTime'                 => date('Y-m-d H:i:s'),
+                'SaleReturn_brunchId'     => $this->session->userdata("BRANCHid")
             );
 
             $this->db->insert('tbl_salereturn', $salesReturn);
             $salesReturnId = $this->db->insert_id();
 
-            $totalReturnAmount = 0;
             foreach ($data->cart as $product) {
                 $returnDetails = array(
-                    'SaleReturn_IdNo' => $salesReturnId,
-                    'SaleReturnDetailsProduct_SlNo' => $product->Product_IDNo,
-                    'Batch_No' => $product->Batch_No,
-                    'SaleReturnDetails_ReturnQuantity' => $product->return_quantity,
-                    'SaleReturnDetails_ReturnAmount' => $product->return_amount,
-                    'Status' => 'a',
-                    'AddBy' => $this->session->userdata("FullName"),
-                    'AddTime' => date('Y-m-d H:i:s'),
-                    'SaleReturnDetails_brunchID' => $this->session->userdata("BRANCHid")
+                    'SaleReturn_IdNo'                  => $salesReturnId,
+                    'SaleReturnDetailsProduct_SlNo'    => $product->productId,
+                    'Batch_No'                         => $product->Batch_No,
+                    'SaleReturnDetails_ReturnQuantity' => $product->quantity,
+                    'SaleReturnDetails_ReturnAmount'   => $product->total,
+                    'Status'                           => 'a',
+                    'AddBy'                            => $this->session->userdata("FullName"),
+                    'AddTime'                          => date('Y-m-d H:i:s'),
+                    'SaleReturnDetails_brunchID'       => $this->session->userdata("BRANCHid")
                 );
 
                 $this->db->insert('tbl_salereturndetails', $returnDetails);
-
-                $totalReturnAmount += $product->return_amount;
 
                 $this->db->query("
                     update tbl_currentinventory 
                     set sales_return_quantity = sales_return_quantity + ? 
                     where product_id = ?
                     and branch_id = ?
-                ", [$product->return_quantity, $product->Product_IDNo, $this->session->userdata('BRANCHid')]);
+                ", [$product->quantity, $product->productId, $this->session->userdata('BRANCHid')]);
             }
 
-            $customerInfo = $this->db->query("select * from tbl_customer where Customer_SlNo = ?", $data->invoice->SalseCustomer_IDNo)->row();
+            $customerInfo = $this->db->query("select * from tbl_customer where Customer_SlNo = ?", $data->salesReturn->customerId)->row();
             if ($customerInfo->Customer_Type == 'G') {
                 $customerPayment = array(
-                    'CPayment_date' => $data->salesReturn->returnDate,
-                    'CPayment_invoice' => $data->invoice->SaleMaster_InvoiceNo,
-                    'CPayment_customerID' => $data->invoice->SalseCustomer_IDNo,
+                    'CPayment_date'            => $data->salesReturn->returnDate,
+                    'CPayment_invoice'         => $this->mt->generateCustomerPaymentCode(),
+                    'SaleMaster_InvoiceNo'     => "G",
+                    'CPayment_customerID'      => $data->salesReturn->customerId,
                     'CPayment_TransactionType' => 'CP',
-                    'CPayment_amount' => $totalReturnAmount,
-                    'CPayment_Paymentby' => 'cash',
-                    'CPayment_brunchid' => $this->session->userdata("BRANCHid"),
-                    'CPayment_previous_due' => 0,
-                    'CPayment_Addby' => $this->session->userdata("FullName"),
-                    'CPayment_AddDAte' => date('Y-m-d H:i:s'),
-                    'CPayment_status' => 'a'
+                    'CPayment_amount'          => $data->salesReturn->total,
+                    'CPayment_Paymentby'       => 'cash',
+                    'CPayment_brunchid'        => $this->session->userdata("BRANCHid"),
+                    'CPayment_previous_due'    => 0,
+                    'CPayment_Addby'           => $this->session->userdata("FullName"),
+                    'CPayment_AddDAte'         => date('Y-m-d H:i:s'),
+                    'CPayment_status'          => 'a'
                 );
-
                 $this->db->insert('tbl_customer_payment', $customerPayment);
             }
 
@@ -608,14 +603,14 @@ class Sales extends CI_Controller
             $oldDetails = $this->db->query("select * from tbl_salereturndetails sr where sr.SaleReturn_IdNo = ?", $salesReturnId)->result();
 
             $salesReturn = array(
-                'SaleMaster_InvoiceNo' => $data->invoice->SaleMaster_InvoiceNo,
-                'SaleReturn_ReturnDate' => $data->salesReturn->returnDate,
+                'customerId'              => $data->salesReturn->customerId,
+                'SaleReturn_ReturnDate'   => $data->salesReturn->returnDate,
                 'SaleReturn_ReturnAmount' => $data->salesReturn->total,
-                'SaleReturn_Description' => $data->salesReturn->note,
-                'Status' => 'a',
-                'AddBy' => $this->session->userdata("FullName"),
-                'AddTime' => date('Y-m-d H:i:s'),
-                'SaleReturn_brunchId' => $this->session->userdata("BRANCHid")
+                'SaleReturn_Description'  => $data->salesReturn->note,
+                'Status'                  => 'a',
+                'AddBy'                   => $this->session->userdata("FullName"),
+                'AddTime'                 => date('Y-m-d H:i:s'),
+                'SaleReturn_brunchId'     => $this->session->userdata("BRANCHid")
             );
 
             $this->db->where('SaleReturn_SlNo', $salesReturnId)->update('tbl_salereturn', $salesReturn);
@@ -631,58 +626,52 @@ class Sales extends CI_Controller
 
             $this->db->query("delete from tbl_salereturndetails where SaleReturn_IdNo = ?", $salesReturnId);
 
-            $totalReturnAmount = 0;
             foreach ($data->cart as $product) {
                 $returnDetails = array(
-                    'SaleReturn_IdNo' => $salesReturnId,
-                    'SaleReturnDetailsProduct_SlNo' => $product->Product_IDNo,
-                    'Batch_No' => $product->Batch_No,
-                    'SaleReturnDetails_ReturnQuantity' => $product->return_quantity,
-                    'SaleReturnDetails_ReturnAmount' => $product->return_amount,
-                    'Status' => 'a',
-                    'AddBy' => $this->session->userdata("FullName"),
-                    'AddTime' => date('Y-m-d H:i:s'),
-                    'SaleReturnDetails_brunchID' => $this->session->userdata("BRANCHid")
+                    'SaleReturn_IdNo'                  => $salesReturnId,
+                    'SaleReturnDetailsProduct_SlNo'    => $product->productId,
+                    'Batch_No'                         => $product->Batch_No,
+                    'SaleReturnDetails_ReturnQuantity' => $product->quantity,
+                    'SaleReturnDetails_ReturnAmount'   => $product->total,
+                    'Status'                           => 'a',
+                    'AddBy'                            => $this->session->userdata("FullName"),
+                    'AddTime'                          => date('Y-m-d H:i:s'),
+                    'SaleReturnDetails_brunchID'       => $this->session->userdata("BRANCHid")
                 );
 
                 $this->db->insert('tbl_salereturndetails', $returnDetails);
-
-                $totalReturnAmount += $product->return_amount;
 
                 $this->db->query("
                     update tbl_currentinventory 
                     set sales_return_quantity = sales_return_quantity + ? 
                     where product_id = ?
                     and branch_id = ?
-                ", [$product->return_quantity, $product->Product_IDNo, $this->session->userdata('BRANCHid')]);
+                ", [$product->quantity, $product->productId, $this->session->userdata('BRANCHid')]);
             }
 
-            $customerInfo = $this->db->query("select * from tbl_customer where Customer_SlNo = ?", $data->invoice->SalseCustomer_IDNo)->row();
+            $customerInfo = $this->db->query("select * from tbl_customer where Customer_SlNo = ?", $data->salesReturn->customerId)->row();
             if ($customerInfo->Customer_Type == 'G') {
                 $this->db->query("
                     delete from tbl_customer_payment 
-                    where CPayment_invoice = ? 
                     and CPayment_customerID = ?
                     and CPayment_amount = ?
                     limit 1
                 ", [
-                    $data->invoice->SaleMaster_InvoiceNo,
-                    $data->invoice->SalseCustomer_IDNo,
+                    $data->salesReturn->customerId,
                     $oldReturn->SaleReturn_ReturnAmount
                 ]);
 
                 $customerPayment = array(
-                    'CPayment_date' => $data->salesReturn->returnDate,
-                    'CPayment_invoice' => $data->invoice->SaleMaster_InvoiceNo,
-                    'CPayment_customerID' => $data->invoice->SalseCustomer_IDNo,
+                    'CPayment_date'            => $data->salesReturn->returnDate,
+                    'CPayment_customerID'      => $data->salesReturn->customerId,
                     'CPayment_TransactionType' => 'CP',
-                    'CPayment_amount' => $totalReturnAmount,
-                    'CPayment_Paymentby' => 'cash',
-                    'CPayment_brunchid' => $this->session->userdata("BRANCHid"),
-                    'CPayment_previous_due' => 0,
-                    'CPayment_Addby' => $this->session->userdata("FullName"),
-                    'CPayment_AddDAte' => date('Y-m-d H:i:s'),
-                    'CPayment_status' => 'a'
+                    'CPayment_amount'          => $data->salesReturn->total,
+                    'CPayment_Paymentby'       => 'cash',
+                    'CPayment_brunchid'        => $this->session->userdata("BRANCHid"),
+                    'CPayment_previous_due'    => 0,
+                    'CPayment_Addby'           => $this->session->userdata("FullName"),
+                    'CPayment_AddDAte'         => date('Y-m-d H:i:s'),
+                    'CPayment_status'          => 'a'
                 );
 
                 $this->db->insert('tbl_customer_payment', $customerPayment);
@@ -786,11 +775,9 @@ class Sales extends CI_Controller
                 c.Customer_Address,
                 c.Customer_Mobile,
                 c.owner_name,
-                sm.SaleMaster_TotalDiscountAmount,
-                sm.SaleMaster_SlNo
+                concat_ws('-', c.Customer_Code, c.Customer_Name, c.owner_name, c.Customer_Mobile) as display_name
             from tbl_salereturn sr
-            join tbl_salesmaster sm on sm.SaleMaster_InvoiceNo = sr.SaleMaster_InvoiceNo
-            left join tbl_customer c on c.Customer_SlNo = sm.SalseCustomer_IDNo
+            left join tbl_customer c on c.Customer_SlNo = sr.customerId
             where sr.Status = 'a'
             and sr.SaleReturn_brunchId = '$this->sbrunch'
             $clauses
@@ -2017,37 +2004,55 @@ class Sales extends CI_Controller
     {
         $data = json_decode($this->input->raw_input_stream);
 
-        $batches = $this->db->query("select 
-                pd.*,
-                concat(pd.batch_no, ' - ', 'Exp-',pd.expire_date) as display_text,
-                pm.PurchaseMaster_InvoiceNo,
-                p.Product_Code,
-                p.Product_Name,
-
-                (select ifnull(sum(sd.SaleDetails_TotalQuantity), 0)
-                from tbl_saledetails sd
-                where sd.Product_IDNo = '$data->productId'
-                and sd.Status = 'a'
-                and sd.Batch_No = pd.batch_no) as saleQty,
-
-                (select ifnull(sum(srd.SaleReturnDetails_ReturnQuantity), 0)
-                from tbl_salereturndetails srd
-                where srd.SaleReturnDetailsProduct_SlNo = '$data->productId' 
-                and srd.Batch_No = pd.batch_no) as saleRtnQty,
-
-                (select ifnull(sum(prd.PurchaseReturnDetails_ReturnQuantity), 0)
-                from tbl_purchasereturndetails prd
-                where prd.PurchaseReturnDetailsProduct_SlNo = '$data->productId' 
-                and prd.Batch_No = pd.batch_no) as purchaseRtnQty,
-                
-                (select((pd.PurchaseDetails_TotalQuantity + saleRtnQty) - (purchaseRtnQty + saleQty))) as curQty
-
-                from tbl_purchasedetails pd
-                left join tbl_purchasemaster pm on pm.PurchaseMaster_SlNo =  pd.PurchaseMaster_IDNo
-                join tbl_product p on p.Product_SlNo = pd.Product_IDNo
-                where pd.Product_IDNo = ?
-                and pd.status = 'a'
-                order by pd.expire_date", $data->productId)->result();
+        $batches = $this->db->query("SELECT
+                                    CONCAT(pd.batch_no,' - ','Exp-',pd.expire_date) AS display_text,
+                                    pm.PurchaseMaster_InvoiceNo AS invoice,
+                                    p.Product_Code,
+                                    p.Product_Name,
+                                    pd.PurchaseDetails_TotalQuantity AS purchaseQty,
+                                    
+                                    (SELECT IFNULL(SUM(sd.SaleDetails_TotalQuantity),0)
+                                    FROM tbl_saledetails sd
+                                    WHERE sd.Product_IDNo = '$data->productId' 
+                                    AND sd.Status = 'a' 
+                                    AND sd.Batch_No = pd.batch_no) AS saleQty,
+                                    
+                                    (SELECT IFNULL(SUM(prd.PurchaseReturnDetails_ReturnQuantity),0)
+                                    FROM tbl_purchasereturndetails prd
+                                    WHERE prd.PurchaseReturnDetailsProduct_SlNo = '$data->productId'
+                                    AND prd.Batch_No = pd.batch_no) AS purchaseRtnQty,
+                                    
+                                    (SELECT ((pd.PurchaseDetails_TotalQuantity) -(purchaseRtnQty + saleQty))) AS curQty
+                                    
+                                    FROM tbl_purchasedetails pd
+                                    LEFT JOIN tbl_purchasemaster pm ON pm.PurchaseMaster_SlNo = pd.PurchaseMaster_IDNo
+                                    JOIN tbl_product p ON p.Product_SlNo = pd.Product_IDNo
+                                    WHERE pd.Product_IDNo = '$data->productId' 
+                                    AND pd.status = 'a'
+                                    
+                                UNION
+                                
+                                SELECT 
+                                    CONCAT(srd.Batch_No) AS display_text,
+                                    '' AS invoice,
+                                    p.Product_Code,
+                                    p.Product_Name,
+                                    0 AS purchaseQty,
+                                    
+                                    (SELECT IFNULL(SUM(sd.SaleDetails_TotalQuantity),0)
+                                    FROM tbl_saledetails sd
+                                    WHERE sd.Product_IDNo = '$data->productId' 
+                                    AND sd.Status = 'a' 
+                                    AND sd.Batch_No = srd.Batch_No) AS saleQty,
+                                    
+                                    0 AS purchaseRtnQty,
+                                    
+                                (SELECT((srd.SaleReturnDetails_ReturnQuantity) -(saleQty))) AS curQty
+                                
+                                FROM tbl_salereturndetails srd
+                                JOIN tbl_product p ON p.Product_SlNo = srd.SaleReturnDetailsProduct_SlNo
+                                WHERE srd.SaleReturnDetailsProduct_SlNo = '$data->productId' 
+                                AND srd.Status = 'a'")->result();
 
         echo json_encode($batches);
     }
