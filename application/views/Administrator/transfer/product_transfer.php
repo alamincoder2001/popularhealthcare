@@ -106,8 +106,13 @@
                                     <div class="form-group">
                                         <label class="control-label col-md-4">Product</label>
                                         <div class="col-md-8">
-                                            <select class="form-control" v-bind:style="{display: products.length > 0 ? 'none' : ''}"></select>
-                                            <v-select id="product" v-bind:options="products" v-model="selectedProduct" label="display_text" v-on:input="onChangeProduct" v-bind:style="{display: products.length > 0 ? '' : 'none'}"></v-select>
+                                            <v-select id="product" v-bind:options="products" v-model="selectedProduct" label="display_text" v-on:input="onChangeProduct"></v-select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="control-label col-md-4">Batch</label>
+                                        <div class="col-md-8">
+                                            <v-select id="batch" v-bind:options="batches" v-model="selectedBatch" label="display_text" @input="BatchOnChange"></v-select>
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -155,6 +160,7 @@
                             <th>Sl</th>
                             <th>Product Id</th>
                             <th>Product Name</th>
+                            <th>Batch No.</th>
                             <th>Quantity</th>
                             <th>Amount</th>
                             <th>Action</th>
@@ -165,7 +171,11 @@
                             <td>{{ sl + 1 }}</td>
                             <td>{{ product.product_code }}</td>
                             <td>{{ product.name }}</td>
-                            <td><input type="number" v-model="product.quantity" v-on:input="onChangeCartQuantity(product.product_id)"></td>
+                            <td>{{ product.Batch_No }}</td>
+                            <td>
+                                {{product.quantity}}
+                                <!-- <input type="number" v-model="product.quantity" v-on:input="onChangeCartQuantity(product.product_id, product.Batch_No)"> -->
+                            </td>
                             <td>{{ product.total }}</td>
                             <td><a href="" v-on:click.prevent="removeFromCart(sl)"><i class="fa fa-trash"></i></a></td>
                         </tr>
@@ -193,9 +203,9 @@
         el: '#productTransfer',
         data() {
             return {
-                branchId: "<?php echo $this->session->userdata('BRANCHid');?>",
+                branchId: "<?php echo $this->session->userdata('BRANCHid'); ?>",
                 transfer: {
-                    transfer_id: parseInt('<?php echo $transferId;?>'),
+                    transfer_id: parseInt('<?php echo $transferId; ?>'),
                     transfer_date: moment().format('YYYY-MM-DD'),
                     transfer_by: '',
                     transfer_from: '',
@@ -210,9 +220,11 @@
                 selectedBranch: null,
                 products: [],
                 selectedProduct: null,
+                batches: [],
+                selectedBatch: null,
                 productStock: 0,
-                quantity: '',
-                total: '',
+                quantity: 0,
+                total: 0,
             }
         },
         async created() {
@@ -220,7 +232,7 @@
             this.getBranches();
             this.getProducts();
 
-            if(this.transfer.transfer_id != 0) {
+            if (this.transfer.transfer_id != 0) {
                 await this.getTransfer();
             }
         },
@@ -233,7 +245,7 @@
 
             getBranches() {
                 axios.get('/get_branches').then(res => {
-                    let currentBranchId = parseInt("<?php echo $this->session->userdata('BRANCHid');?>");
+                    let currentBranchId = parseInt("<?php echo $this->session->userdata('BRANCHid'); ?>");
                     let currentBranchInd = res.data.findIndex(branch => branch.brunch_id == currentBranchId);
                     res.data.splice(currentBranchInd, 1);
                     this.branches = res.data;
@@ -241,98 +253,127 @@
             },
 
             getProducts() {
-                axios.post('/get_products', {isService: 'false'}).then(res => {
+                axios.post('/get_products', {
+                    isService: 'false'
+                }).then(res => {
                     this.products = res.data;
                 })
             },
 
-            async onChangeProduct(){
-                if(this.selectedProduct == null){
+            async onChangeProduct() {
+                if (this.selectedProduct == null) {
                     return;
                 }
-                
+                this.selectedBatch = null
+
+                axios.post('/get_batchs', {
+                        productId: this.selectedProduct.Product_SlNo
+                    })
+                    .then(res => {
+                        this.batches = res.data.filter(item => item.curQty > 0);
+                    })
                 this.productStock = await this.getProductStock(this.selectedProduct.Product_SlNo);
+            },
+
+            BatchOnChange() {
+                if (this.selectedBatch == null) {
+                    return
+                }
+                this.productStock = this.selectedBatch.curQty
+
                 this.$refs.quantity.focus();
             },
 
-            async getProductStock(productId){
-                let stock = await axios.post('/get_product_stock', {productId: productId}).then(res => {
-                     return res.data;
+            async getProductStock(productId) {
+                let stock = await axios.post('/get_product_stock', {
+                    productId: productId
+                }).then(res => {
+                    return res.data;
                 })
                 return stock;
             },
 
             productTotal() {
-                if(this.selectedProduct == null) {
+                if (this.selectedProduct == null) {
                     return;
                 }
                 this.total = this.quantity * this.selectedProduct.Product_Purchase_Rate;
             },
 
-            addToCart(){
-                if(this.selectedProduct == null){
+            addToCart() {
+                if (this.selectedProduct == null) {
                     alert('Select product');
                     return;
                 }
-                if(this.productStock < this.quantity){
+                if (parseFloat(this.productStock) < parseFloat(this.quantity)) {
                     alert('Stock not available');
                     return;
                 }
                 let cartProduct = {
                     product_id: this.selectedProduct.Product_SlNo,
-                    name: this.selectedProduct.Product_Name,
                     product_code: this.selectedProduct.Product_Code,
+                    name: this.selectedProduct.Product_Name,
+                    Batch_No: this.selectedBatch.batch_no,
                     quantity: this.quantity,
                     purchase_rate: this.selectedProduct.Product_Purchase_Rate,
                     total: this.total
                 }
 
+                let cartInd = this.cart.findIndex(p => p.product_id == cartProduct.product_id && p.Batch_No == cartProduct.Batch_No);
+                if (cartInd > -1) {
+                    this.cart.splice(cartInd, 1);
+                }
+
                 this.cart.push(cartProduct);
 
                 this.selectedProduct = null;
+                this.selectedBatch = null;
                 this.quantity = '';
                 this.total = '';
-                let productSearchBox = document.querySelector('#product input[role="combobox"]');
-                productSearchBox.focus();
+                document.querySelector('#product input[role="combobox"]').focus();
             },
 
-            async onChangeCartQuantity(productId){
-                let cartInd = this.cart.findIndex(product => product.product_id == productId);
-                
-                if(this.transfer.transfer_id == 0) {
-                    let stock = await this.getProductStock(productId);
+            // async onChangeCartQuantity(productId, batchNo) {
+            //     let cartInd = this.cart.findIndex(product => product.product_id == productId && product.Batch_No == batchNo);
+            //     await axios.post('/get_batchs', {
+            //             productId: productId
+            //         })
+            //         .then(res => {
+            //             let batches = res.data.filter(pro => pro.batch_no == batchNo)
+            //             if (batches[0].curQty < this.cart[cartInd].quantity) {
+            //                 alert("Stock is Unavailable")
+            //                 this.cart[cartInd].quantity = 1
+            //             }
+            //         })
 
-                    if(this.cart[cartInd].quantity > stock){
-                        alert('Stock not available');
-                        this.cart[cartInd].quantity = stock;
-                    }
-                }
-                
-                this.cart[cartInd].total = this.cart[cartInd].quantity * this.cart[cartInd].purchase_rate;
+            //     this.cart[cartInd].total = this.cart[cartInd].quantity * this.cart[cartInd].purchase_rate;
 
-            },
 
-            removeFromCart(cartInd){
+            // },
+
+            removeFromCart(cartInd) {
                 this.cart.splice(cartInd, 1);
             },
 
-            saveProductTransfer(){
-                if(this.transfer.transfer_date == null){
+            saveProductTransfer() {
+                if (this.transfer.transfer_date == null) {
                     alert('Select transfer date');
                     return;
                 }
 
-                if(this.selectedEmployee == null){
+                if (this.selectedEmployee == null) {
                     alert('Select transfer by');
                     return;
                 }
 
-                if(this.selectedBranch == null){
+                if (this.selectedBranch == null) {
                     alert('Select branch');
                     return;
                 }
 
-                this.transfer.total_amount = this.cart.reduce((p, c) => { return p + +c.total }, 0);
+                this.transfer.total_amount = this.cart.reduce((p, c) => {
+                    return p + +c.total
+                }, 0);
 
                 this.transfer.transfer_by = this.selectedEmployee.Employee_SlNo;
                 this.transfer.transfer_to = this.selectedBranch.brunch_id;
@@ -343,15 +384,15 @@
                 }
 
                 let url = '/add_product_transfer';
-                if(this.transfer.transfer_id != 0) {
+                if (this.transfer.transfer_id != 0) {
                     url = '/update_product_transfer';
                 }
                 axios.post(url, data).then(res => {
-                     let r = res.data;
-                     alert(r.message);
-                     if(r.success){
-                         location.reload();
-                     }
+                    let r = res.data;
+                    alert(r.message);
+                    if (r.success) {
+                        location.reload();
+                    }
                 })
             },
 
@@ -376,7 +417,9 @@
                     Brunch_name: transfer.transfer_to_name
                 }
 
-                let transferDetails = await axios.post('/get_transfer_details', {transferId: this.transfer.transfer_id}).then(res => {
+                let transferDetails = await axios.post('/get_transfer_details', {
+                    transferId: this.transfer.transfer_id
+                }).then(res => {
                     return res.data;
                 })
 

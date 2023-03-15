@@ -165,7 +165,7 @@
 								<div class="form-group">
 									<label class="col-xs-4 control-label no-padding-right"> Batch No. </label>
 									<div class="col-xs-8">
-										<input type="text" id="ExpireDate" class="form-control"  v-model="selectedProduct.batch_no" required />
+										<input type="text" id="ExpireDate" class="form-control"  v-model="selectedProduct.batch_no" @change="BatchCheck" required />
 									</div>
 								</div>
 								
@@ -446,6 +446,7 @@
 				},
 				cart: [],
 				purchaseOnProgress: false,
+				checkBatch: false,
 				userType: '<?php echo $this->session->userdata("accountType")?>'
 			}
 		},
@@ -515,6 +516,18 @@
 			onChangeProduct(){
 				this.$refs.quantity.focus();
 			},
+			BatchCheck(){
+				axios.post("check_batch", {Batch_No: this.selectedProduct.batch_no})
+					.then(res => {
+						if (res.data != null) {
+							alert("Already exists this batch")
+							this.checkBatch = true
+							return
+						}else{
+							this.checkBatch = false
+						}
+					})
+			},
 			productTotal(){
 				this.selectedProduct.total = this.selectedProduct.quantity * this.selectedProduct.Product_Purchase_Rate;
 			},
@@ -524,11 +537,10 @@
 				this.calculateTotal()
 			},
 			addToCart(){
-				// let cartInd = this.cart.findIndex(p => p.productId == this.selectedProduct.Product_SlNo);
-				// if(cartInd > -1){
-				// 	alert('Product exists in cart');
-				// 	return;
-				// }
+				if (this.checkBatch != false) {
+					alert("Already exists this batch")
+					return
+				}
 
 				let product = {
 					productId: this.selectedProduct.Product_SlNo,

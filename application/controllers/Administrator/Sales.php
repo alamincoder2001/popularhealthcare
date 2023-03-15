@@ -527,6 +527,7 @@ class Sales extends CI_Controller
     {
         $res = ['success' => false, 'message' => ''];
         try {
+            $this->db->trans_begin();
             $data = json_decode($this->input->raw_input_stream);
             $salesReturn = array(
                 'customerId'              => $data->salesReturn->customerId,
@@ -541,12 +542,15 @@ class Sales extends CI_Controller
 
             $this->db->insert('tbl_salereturn', $salesReturn);
             $salesReturnId = $this->db->insert_id();
-
             foreach ($data->cart as $product) {
                 $returnDetails = array(
                     'SaleReturn_IdNo'                  => $salesReturnId,
                     'SaleReturnDetailsProduct_SlNo'    => $product->productId,
                     'Batch_No'                         => $product->Batch_No,
+                    'manufac_date'                     => $product->manufac_date,
+                    'expire_date'                      => $product->expire_date,
+                    'purchaseRate'                     => $product->purchaseRate,
+                    'salesRate'                        => $product->salesRate,
                     'SaleReturnDetails_ReturnQuantity' => $product->quantity,
                     'SaleReturnDetails_ReturnAmount'   => $product->total,
                     'Status'                           => 'a',
@@ -564,6 +568,67 @@ class Sales extends CI_Controller
                     and branch_id = ?
                 ", [$product->quantity, $product->productId, $this->session->userdata('BRANCHid')]);
             }
+
+            // purchases
+            // $purchase = array(
+            //     'Supplier_SlNo'                 => 0,
+            //     'PurchaseMaster_InvoiceNo'      => $this->mt->generatePurchaseInvoice(),
+            //     'PurchaseMaster_OrderDate'      => $data->salesReturn->returnDate,
+            //     'PurchaseMaster_PurchaseFor'    => $this->sbrunch,
+            //     'PurchaseMaster_TotalAmount'    => $data->salesReturn->total,
+            //     'PurchaseMaster_DiscountAmount' => 0,
+            //     'PurchaseMaster_Tax'            => 0,
+            //     'PurchaseMaster_Freight'        => 0,
+            //     'PurchaseMaster_SubTotalAmount' => $data->salesReturn->total,
+            //     'PurchaseMaster_PaidAmount'     => $data->salesReturn->total,
+            //     'PurchaseMaster_DueAmount'      => 0,
+            //     'previous_due'                  => 0,
+            //     'PurchaseMaster_Description'    => $data->salesReturn->note,
+            //     'status'                        => 'a',
+            //     'AddBy'                         => $this->session->userdata("FullName"),
+            //     'AddTime'                       => date('Y-m-d H:i:s'),
+            //     'PurchaseMaster_BranchID'       => $this->session->userdata('BRANCHid')
+            // );
+
+            // $this->db->insert('tbl_purchasemaster', $purchase);
+            // $purchaseId = $this->db->insert_id();
+
+            // foreach ($data->cart as $product) {
+            //     $purchaseDetails = array(
+            //         'PurchaseMaster_IDNo'           => $purchaseId,
+            //         'Product_IDNo'                  => $product->productId,
+            //         'PurchaseDetails_TotalQuantity' => $product->quantity,
+            //         'PurchaseDetails_Rate'          => $product->purchaseRate,
+            //         'PurchaseDetails_TotalAmount'   => $product->total,
+            //         'manufac_date'                  => $product->manufac_date,
+            //         'expire_date'                   => $product->expire_date,
+            //         'batch_no'                      => $product->Batch_No,
+            //         'Status'                        => 'a',
+            //         'AddBy'                         => $this->session->userdata("FullName"),
+            //         'AddTime'                       => date('Y-m-d H:i:s'),
+            //         'PurchaseDetails_branchID'      => $this->session->userdata('BRANCHid')
+            //     );
+
+            //     $this->db->insert('tbl_purchasedetails', $purchaseDetails);
+
+            //     $inventoryCount = $this->db->query("select * from tbl_currentinventory where product_id = ? and branch_id = ?", [$product->productId, $this->session->userdata('BRANCHid')])->num_rows();
+            //     if ($inventoryCount == 0) {
+            //         $inventory = array(
+            //             'product_id'        => $product->productId,
+            //             'purchase_quantity' => $product->quantity,
+            //             'branch_id'         => $this->session->userdata('BRANCHid')
+            //         );
+
+            //         $this->db->insert('tbl_currentinventory', $inventory);
+            //     } else {
+            //         $this->db->query("
+            //             update tbl_currentinventory 
+            //             set purchase_quantity = purchase_quantity + ? 
+            //             where product_id = ? 
+            //             and branch_id = ?
+            //         ", [$product->quantity, $product->productId, $this->session->userdata('BRANCHid')]);
+            //     }
+            // }
 
             $customerInfo = $this->db->query("select * from tbl_customer where Customer_SlNo = ?", $data->salesReturn->customerId)->row();
             if ($customerInfo->Customer_Type == 'G') {
@@ -583,9 +648,10 @@ class Sales extends CI_Controller
                 );
                 $this->db->insert('tbl_customer_payment', $customerPayment);
             }
-
+            $this->db->trans_commit();
             $res = ['success' => true, 'message' => 'Return Success', 'id' => $salesReturnId];
         } catch (Exception $ex) {
+            $this->db->trans_rollback();
             $res = ['success' => false, 'message' => $ex->getMessage()];
         }
 
@@ -631,6 +697,8 @@ class Sales extends CI_Controller
                     'SaleReturn_IdNo'                  => $salesReturnId,
                     'SaleReturnDetailsProduct_SlNo'    => $product->productId,
                     'Batch_No'                         => $product->Batch_No,
+                    'manufac_date'                     => $product->manufac_date,
+                    'expire_date'                      => $product->expire_date,
                     'SaleReturnDetails_ReturnQuantity' => $product->quantity,
                     'SaleReturnDetails_ReturnAmount'   => $product->total,
                     'Status'                           => 'a',
@@ -648,6 +716,81 @@ class Sales extends CI_Controller
                     and branch_id = ?
                 ", [$product->quantity, $product->productId, $this->session->userdata('BRANCHid')]);
             }
+
+            // purchases
+            // $purchase = array(
+            //     'Supplier_SlNo'                 => 0,
+            //     'PurchaseMaster_InvoiceNo'      => $this->mt->generatePurchaseInvoice(),
+            //     'PurchaseMaster_OrderDate'      => $data->salesReturn->returnDate,
+            //     'PurchaseMaster_PurchaseFor'    => $this->sbrunch,
+            //     'PurchaseMaster_TotalAmount'    => $data->salesReturn->total,
+            //     'PurchaseMaster_DiscountAmount' => 0,
+            //     'PurchaseMaster_Tax'            => 0,
+            //     'PurchaseMaster_Freight'        => 0,
+            //     'PurchaseMaster_SubTotalAmount' => $data->salesReturn->total,
+            //     'PurchaseMaster_PaidAmount'     => $data->salesReturn->total,
+            //     'PurchaseMaster_DueAmount'      => 0,
+            //     'previous_due'                  => 0,
+            //     'PurchaseMaster_Description'    => $data->salesReturn->note,
+            //     'status'                        => 'a',
+            //     'AddBy'                         => $this->session->userdata("FullName"),
+            //     'AddTime'                       => date('Y-m-d H:i:s'),
+            //     'PurchaseMaster_BranchID'       => $this->session->userdata('BRANCHid')
+            // );
+
+            // $this->db->where('PurchaseMaster_SlNo', $purchaseId);
+            // $this->db->update('tbl_purchasemaster', $purchase);
+
+            // $oldPurchaseDetails = $this->db->query("select * from tbl_purchasedetails where PurchaseMaster_IDNo = ?", $purchaseId)->result();
+            // $this->db->query("delete from tbl_purchasedetails where PurchaseMaster_IDNo = ?", $purchaseId);
+
+            // foreach($oldPurchaseDetails as $product){
+            //     $previousStock = $this->mt->productStock($product->Product_IDNo);
+
+            //     $this->db->query("
+            //         update tbl_currentinventory 
+            //         set purchase_quantity = purchase_quantity - ? 
+            //         where product_id = ?
+            //         and branch_id = ?
+            //     ", [$product->PurchaseDetails_TotalQuantity, $product->Product_IDNo, $this->session->userdata('BRANCHid')]);
+            // }
+
+            // foreach ($data->cart as $product) {
+            //     $purchaseDetails = array(
+            //         'PurchaseMaster_IDNo'           => $purchaseId,
+            //         'Product_IDNo'                  => $product->productId,
+            //         'PurchaseDetails_TotalQuantity' => $product->quantity,
+            //         'PurchaseDetails_Rate'          => $product->purchaseRate,
+            //         'PurchaseDetails_TotalAmount'   => $product->total,
+            //         'manufac_date'                  => $product->manufac_date,
+            //         'expire_date'                   => $product->expire_date,
+            //         'batch_no'                      => $product->Batch_No,
+            //         'Status'                        => 'a',
+            //         'AddBy'                         => $this->session->userdata("FullName"),
+            //         'AddTime'                       => date('Y-m-d H:i:s'),
+            //         'PurchaseDetails_branchID'      => $this->session->userdata('BRANCHid')
+            //     );
+
+            //     $this->db->insert('tbl_purchasedetails', $purchaseDetails);
+
+            //     $inventoryCount = $this->db->query("select * from tbl_currentinventory where product_id = ? and branch_id = ?", [$product->productId, $this->session->userdata('BRANCHid')])->num_rows();
+            //     if ($inventoryCount == 0) {
+            //         $inventory = array(
+            //             'product_id'        => $product->productId,
+            //             'purchase_quantity' => $product->quantity,
+            //             'branch_id'         => $this->session->userdata('BRANCHid')
+            //         );
+
+            //         $this->db->insert('tbl_currentinventory', $inventory);
+            //     } else {
+            //         $this->db->query("
+            //             update tbl_currentinventory 
+            //             set purchase_quantity = purchase_quantity + ? 
+            //             where product_id = ? 
+            //             and branch_id = ?
+            //         ", [$product->quantity, $product->productId, $this->session->userdata('BRANCHid')]);
+            //     }
+            // }
 
             $customerInfo = $this->db->query("select * from tbl_customer where Customer_SlNo = ?", $data->salesReturn->customerId)->row();
             if ($customerInfo->Customer_Type == 'G') {
@@ -1329,8 +1472,8 @@ class Sales extends CI_Controller
                             FROM tbl_product p
                             LEFT JOIN tbl_productcategory pc ON pc.ProductCategory_SlNo = p.ProductCategory_ID
                             WHERE p.status = 'a'
-                            " . ($data->productId == '' ? "" : " AND p.Product_SlNo = '$data->productId' ") . 
-                            " AND p.Product_branchid = '$this->sbrunch'", )->result();
+                            " . ($data->productId == '' ? "" : " AND p.Product_SlNo = '$data->productId' ") .
+                        " AND p.Product_branchid = '$this->sbrunch'",)->result();
                 }
             } else {
                 $res = $this->db->query("SELECT
@@ -1356,8 +1499,8 @@ class Sales extends CI_Controller
                         FROM tbl_product p
                         LEFT JOIN tbl_productcategory pc ON pc.ProductCategory_SlNo = p.ProductCategory_ID
                         WHERE p.status = 'a'
-                        " . ($data->productId == '' ? "" : " AND p.Product_SlNo = '$data->productId' ") . 
-                        " AND p.Product_branchid = '$this->sbrunch'")->result();
+                        " . ($data->productId == '' ? "" : " AND p.Product_SlNo = '$data->productId' ") .
+                    " AND p.Product_branchid = '$this->sbrunch'")->result();
             }
         } catch (Exception $ex) {
             $res = ['message' => $ex->getMessage()];
@@ -2005,6 +2148,7 @@ class Sales extends CI_Controller
         $data = json_decode($this->input->raw_input_stream);
 
         $batches = $this->db->query("SELECT
+                                    pd.batch_no AS batch_no,
                                     CONCAT(pd.batch_no,' - ','Exp-',pd.expire_date) AS display_text,
                                     pm.PurchaseMaster_InvoiceNo AS invoice,
                                     p.Product_Code,
@@ -2012,17 +2156,31 @@ class Sales extends CI_Controller
                                     pd.PurchaseDetails_TotalQuantity AS purchaseQty,
                                     
                                     (SELECT IFNULL(SUM(sd.SaleDetails_TotalQuantity),0)
-                                    FROM tbl_saledetails sd
-                                    WHERE sd.Product_IDNo = '$data->productId' 
-                                    AND sd.Status = 'a' 
-                                    AND sd.Batch_No = pd.batch_no) AS saleQty,
+                                        FROM tbl_saledetails sd
+                                        WHERE sd.Product_IDNo = '$data->productId' 
+                                        AND sd.Status = 'a'
+                                        AND sd.Batch_No = pd.batch_no) AS saleQty,
+
+                                    (SELECT IFNULL(SUM(trd.quantity),0)
+                                        FROM tbl_transferdetails trd
+                                        LEFT JOIN tbl_transfermaster tm ON tm.transfer_id = trd.transfer_id
+                                        WHERE trd.product_id = '$data->productId'
+                                        AND tm.transfer_from = '$this->sbrunch'
+                                        AND trd.Batch_No = pd.batch_no) AS transferMinusQty,
+
+                                    (SELECT IFNULL(SUM(trd.quantity),0)
+                                        FROM tbl_transferdetails trd
+                                        LEFT JOIN tbl_transfermaster tm ON tm.transfer_id = trd.transfer_id
+                                        WHERE trd.product_id = '$data->productId'
+                                        AND tm.transfer_to = '$this->sbrunch'
+                                        AND trd.Batch_No = pd.batch_no) AS transferAddQty,
                                     
                                     (SELECT IFNULL(SUM(prd.PurchaseReturnDetails_ReturnQuantity),0)
-                                    FROM tbl_purchasereturndetails prd
-                                    WHERE prd.PurchaseReturnDetailsProduct_SlNo = '$data->productId'
-                                    AND prd.Batch_No = pd.batch_no) AS purchaseRtnQty,
+                                        FROM tbl_purchasereturndetails prd
+                                        WHERE prd.PurchaseReturnDetailsProduct_SlNo = '$data->productId'
+                                        AND prd.Batch_No = pd.batch_no) AS purchaseRtnQty,
                                     
-                                    (SELECT ((pd.PurchaseDetails_TotalQuantity) -(purchaseRtnQty + saleQty))) AS curQty
+                                    (SELECT ((pd.PurchaseDetails_TotalQuantity + transferAddQty) -(purchaseRtnQty + saleQty + transferMinusQty))) AS curQty
                                     
                                     FROM tbl_purchasedetails pd
                                     LEFT JOIN tbl_purchasemaster pm ON pm.PurchaseMaster_SlNo = pd.PurchaseMaster_IDNo
@@ -2032,22 +2190,37 @@ class Sales extends CI_Controller
                                     
                                 UNION
                                 
-                                SELECT 
-                                    CONCAT(srd.Batch_No) AS display_text,
+                                SELECT
+                                    srd.batch_no AS batch_no, 
+                                    CONCAT(srd.Batch_No,' - ','Exp-',srd.expire_date) AS display_text,
                                     '' AS invoice,
                                     p.Product_Code,
                                     p.Product_Name,
                                     0 AS purchaseQty,
                                     
                                     (SELECT IFNULL(SUM(sd.SaleDetails_TotalQuantity),0)
-                                    FROM tbl_saledetails sd
-                                    WHERE sd.Product_IDNo = '$data->productId' 
-                                    AND sd.Status = 'a' 
-                                    AND sd.Batch_No = srd.Batch_No) AS saleQty,
+                                        FROM tbl_saledetails sd
+                                        WHERE sd.Product_IDNo = '$data->productId' 
+                                        AND sd.Status = 'a'
+                                        AND sd.Batch_No = srd.Batch_No) AS saleQty,
+
+                                    (SELECT IFNULL(SUM(trd.quantity),0)
+                                        FROM tbl_transferdetails trd
+                                        LEFT JOIN tbl_transfermaster tm ON tm.transfer_id = trd.transfer_id
+                                        WHERE trd.product_id = '$data->productId'
+                                        AND tm.transfer_from = '$this->sbrunch'
+                                        AND trd.Batch_No = srd.batch_no) AS transferMinusQty,
+
+                                    (SELECT IFNULL(SUM(trd.quantity),0)
+                                        FROM tbl_transferdetails trd
+                                        LEFT JOIN tbl_transfermaster tm ON tm.transfer_id = trd.transfer_id
+                                        WHERE trd.product_id = '$data->productId'
+                                        AND tm.transfer_to = '$this->sbrunch'
+                                        AND trd.Batch_No = srd.batch_no) AS transferAddQty,
                                     
                                     0 AS purchaseRtnQty,
                                     
-                                (SELECT((srd.SaleReturnDetails_ReturnQuantity) -(saleQty))) AS curQty
+                                (SELECT((srd.SaleReturnDetails_ReturnQuantity + transferAddQty) -(saleQty + transferMinusQty))) AS curQty
                                 
                                 FROM tbl_salereturndetails srd
                                 JOIN tbl_product p ON p.Product_SlNo = srd.SaleReturnDetailsProduct_SlNo
@@ -2055,5 +2228,14 @@ class Sales extends CI_Controller
                                 AND srd.Status = 'a'")->result();
 
         echo json_encode($batches);
+    }
+
+    public function checkBatch()
+    {
+        $data = json_decode($this->input->raw_input_stream);
+
+        $res = $this->db->query("SELECT pd.batch_no FROM tbl_purchasedetails pd WHERE pd.PurchaseDetails_branchID = ? AND pd.batch_no = '$data->Batch_No'", $this->sbrunch)->row();
+
+        echo json_encode($res);
     }
 }

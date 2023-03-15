@@ -69,11 +69,12 @@
 
                 foreach($data->cart as $cartProduct){
                     $transferDetails = array(
-                        'transfer_id' => $transferId,
-                        'product_id' => $cartProduct->product_id,
-                        'quantity' => $cartProduct->quantity,
+                        'transfer_id'   => $transferId,
+                        'product_id'    => $cartProduct->product_id,
+                        'Batch_No'      => $cartProduct->Batch_No,
+                        'quantity'      => $cartProduct->quantity,
                         'purchase_rate' => $cartProduct->purchase_rate,
-                        'total' => $cartProduct->total
+                        'total'         => $cartProduct->total
                     );
 
                     $this->db->insert('tbl_transferdetails', $transferDetails);
@@ -162,6 +163,7 @@
                     $transferDetails = array(
                         'transfer_id' => $transferId,
                         'product_id' => $cartProduct->product_id,
+                        'Batch_No' => $cartProduct->Batch_No,
                         'quantity' => $cartProduct->quantity
                     );
 

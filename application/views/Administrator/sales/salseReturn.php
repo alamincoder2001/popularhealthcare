@@ -70,65 +70,85 @@
 			<div class="widget-body" style="background:#fff6f6">
 				<div class="widget-main">
 					<div class="row">
-						<div class="col-xs-12 col-lg-5">
+						<div class="col-xs-12 col-lg-4">
 							<form v-on:submit.prevent="addToCartReturn">
 								<div class="form-group">
-									<label class="col-xs-3 control-label no-padding-right"> Return Date </label>
-									<div class="col-xs-9">
+									<label class="col-xs-4 control-label no-padding-right"> Return Date </label>
+									<div class="col-xs-8">
 										<input type="date" class="form-control" v-model="salesReturn.returnDate">
 									</div>
 								</div>
 								<div class="form-group">
-									<label class="col-xs-3 control-label no-padding-right" style="margin-top: 3px;"> Customer </label>
-									<div class="col-xs-9" style="margin-top: 3px;">
+									<label class="col-xs-4 control-label no-padding-right" style="margin-top: 3px;"> Customer </label>
+									<div class="col-xs-8" style="margin-top: 3px;">
 										<v-select id="customer" v-bind:options="customers" v-model="selectedCustomer" label="display_name"></v-select>
 									</div>
 								</div>
 								<div class="form-group">
-									<label class="col-xs-3 control-label no-padding-right" style="margin-top: 8px;"> Product </label>
-									<div class="col-xs-9" style="margin-top: 8px;">
+									<label class="col-xs-4 control-label no-padding-right" style="margin-top: 8px;"> Product </label>
+									<div class="col-xs-8" style="margin-top: 8px;">
 										<v-select id="product" v-bind:options="products" v-model="selectedProduct" label="display_text" @input="onChangeProduct"></v-select>
 									</div>
 								</div>
 								<div class="form-group">
-									<label class="col-xs-3 control-label no-padding-right" style="margin-top: 5px;"> Quantity </label>
-									<div class="col-xs-9" style="margin-top: 5px;">
+									<label class="col-xs-4 control-label no-padding-right" style="margin-top: 5px;"> Quantity </label>
+									<div class="col-xs-8" style="margin-top: 5px;">
 										<input type="number" min="0" step="0.01" placeholder="Qty" class="form-control" @input="productReturnTotal" id="quantity" v-model="selectedProduct.quantity" autocomplete="off" />
 									</div>
 								</div>
 
 								<div class="form-group">
-									<label class="col-xs-3 control-label no-padding-right"> Sale Rate </label>
-									<div class="col-xs-9">
+									<label class="col-xs-4 control-label no-padding-right"> Manufa. Date </label>
+									<div class="col-xs-8">
+										<input type="date" id="ExpireDate" class="form-control"  v-model="selectedProduct.manufac_date" required />
+									</div>
+								</div>
+
+								<div class="form-group">
+									<label class="col-xs-4 control-label no-padding-right"> Expire Date </label>
+									<div class="col-xs-8">
+										<input type="date" id="ExpireDate" class="form-control"  v-model="selectedProduct.expire_date" required />
+									</div>
+								</div>
+
+								<div class="form-group">
+									<label class="col-xs-4 control-label no-padding-right"> Batch No. </label>
+									<div class="col-xs-8">
+										<input type="text" placeholder="Batch" class="form-control" v-model="selectedProduct.Batch_No" />
+									</div>
+								</div>								
+
+								<div class="form-group">
+									<label class="col-xs-4 control-label no-padding-right"> Purchase Rate </label>
+									<div class="col-xs-8">
+										<input type="number" id="salesRate" placeholder="Rate" step="0.01" class="form-control" ref="rate" v-model="selectedProduct.Product_Purchase_Rate" />
+									</div>
+								</div>
+
+								<div class="form-group">
+									<label class="col-xs-4 control-label no-padding-right"> Sale Rate </label>
+									<div class="col-xs-8">
 										<input type="number" id="salesRate" placeholder="Rate" step="0.01" class="form-control" @input="productReturnTotal" ref="rate" v-model="selectedProduct.Product_SellingPrice" />
 									</div>
 								</div>
 
 								<div class="form-group">
-									<label class="col-xs-3 control-label no-padding-right"> Batch No. </label>
-									<div class="col-xs-9">
-										<input type="text" placeholder="Batch" class="form-control" v-model="selectedProduct.Batch_No" />
-									</div>
-								</div>
-
-
-								<div class="form-group">
-									<label class="col-xs-3 control-label no-padding-right"> Amount </label>
-									<div class="col-xs-9">
+									<label class="col-xs-4 control-label no-padding-right"> Amount </label>
+									<div class="col-xs-8">
 										<input type="text" id="productTotal" placeholder="Amount" class="form-control" v-model="selectedProduct.total" readonly />
 									</div>
 								</div>
 
 								<div class="form-group">
-									<label class="col-xs-3 control-label no-padding-right"> </label>
-									<div class="col-xs-9">
+									<label class="col-xs-4 control-label no-padding-right"> </label>
+									<div class="col-xs-8">
 										<button type="submit" class="btn btn-default pull-right">Add to Cart</button>
 									</div>
 								</div>
 							</form>
 						</div>
 
-						<div class="col-xs-12 col-lg-7">
+						<div class="col-xs-12 col-lg-8">
 							<div class="table-responsive">
 								<table class="table table-bordered" style="color:#000;margin-bottom: 5px;">
 									<thead>
@@ -136,6 +156,8 @@
 											<th style="width:3%;color:#000;">Sl</th>
 											<th style="width:20%;color:#000;">Product Name</th>
 											<th style="width:8%;color:#000;">Batch_No</th>
+											<th style="width:8%;color:#000;">Manuf. Date</th>
+											<th style="width:8%;color:#000;">Ex. Date</th>
 											<th style="width:3%;color:#000;">Qty</th>
 											<th style="width:2%;color:#000;">Rate</th>
 											<th style="width:6%;color:#000;">Total Amount</th>
@@ -147,6 +169,8 @@
 											<td>{{ sl + 1 }}</td>
 											<td>{{ product.productCode }} - {{ product.name }}</td>
 											<td>{{product.Batch_No}}</td>
+											<td>{{product.manufac_date}}</td>
+											<td>{{product.expire_date}}</td>
 											<td>{{ product.quantity }}</td>
 											<td>{{ product.salesRate }}</td>
 											<td>{{ product.total }}</td>
@@ -154,7 +178,7 @@
 										</tr>
 
 										<tr style="font-weight: bold">
-											<td style="text-align:right" colspan="3">Total = </td>
+											<td style="text-align:right" colspan="5">Total = </td>
 											<td style="text-align:center">{{ cart.reduce((prev,curr)=> {return prev + +curr.quantity},0) }} </td>
 											<td style="text-align:center"></td>
 											<td style="text-align:center"></td>
@@ -162,16 +186,16 @@
 										</tr>
 
 										<tr>
-											<td colspan="7"></td>
+											<td colspan="9"></td>
 										</tr>
 
 										<tr style="font-weight: bold;">
-											<td colspan="4">Note</td>
+											<td colspan="6">Note</td>
 											<td colspan="3">Total</td>
 										</tr>
 
 										<tr>
-											<td colspan="4">
+											<td colspan="6">
 												<textarea class="form-control" v-model="salesReturn.note"></textarea>
 											</td>
 											<td colspan="3" style="padding-top: 15px;font-size:18px;">{{ cart.reduce((prev,curr)=> {return prev + +curr.total},0) }}</td>
@@ -214,8 +238,9 @@
 					Product_Name: '',
 					Batch_No: '',
 					quantity: 0,
-					Product_SellingPrice: 0.00,
-					total: 0.00
+					Product_Purchase_Rate: 0,
+					Product_SellingPrice: 0,
+					total: 0
 				},
 				cart: [],
 				salesReturn: {
@@ -274,13 +299,16 @@
 
 			addToCartReturn() {
 				let product = {
-					productId: this.selectedProduct.Product_SlNo,
-					productCode: this.selectedProduct.Product_Code,
-					name: this.selectedProduct.Product_Name,
-					Batch_No: this.selectedProduct.Batch_No,
-					salesRate: this.selectedProduct.Product_SellingPrice,
-					quantity: this.selectedProduct.quantity,
-					total: this.selectedProduct.total,
+					productId   : this.selectedProduct.Product_SlNo,
+					productCode : this.selectedProduct.Product_Code,
+					name        : this.selectedProduct.Product_Name,
+					manufac_date: this.selectedProduct.manufac_date,
+					expire_date : this.selectedProduct.expire_date,
+					Batch_No    : this.selectedProduct.Batch_No,
+					purchaseRate: this.selectedProduct.Product_Purchase_Rate,
+					salesRate   : this.selectedProduct.Product_SellingPrice,
+					quantity    : this.selectedProduct.quantity,
+					total       : this.selectedProduct.total,
 				}
 
 				if (product.productId == '') {
@@ -356,10 +384,11 @@
 					Product_SlNo: '',
 					display_text: 'Select Product',
 					Product_Name: '',
-					Unit_Name: '',
+					Batch_No: '',
 					quantity: 0,
-					Product_SellingPrice: 0.00,
-					total: 0.00
+					Product_Purchase_Rate: 0,
+					Product_SellingPrice: 0,
+					total: 0
 				}
 			},
 
@@ -377,13 +406,16 @@
 						}
 						res.data.returnDetails.forEach(p => {
 							let prod = {
-								productId: p.SaleReturnDetailsProduct_SlNo,
-								productCode: p.Product_Code,
-								name: p.Product_Name,
-								Batch_No: p.Batch_No,
-								salesRate: p.SaleReturnDetails_ReturnAmount / p.SaleReturnDetails_ReturnQuantity,
-								quantity: p.SaleReturnDetails_ReturnQuantity,
-								total: p.SaleReturnDetails_ReturnAmount,
+								productId   : p.SaleReturnDetailsProduct_SlNo,
+								productCode : p.Product_Code,
+								name        : p.Product_Name,
+								Batch_No    : p.Batch_No,
+								manufac_date: p.manufac_date,
+								expire_date : p.expire_date,
+								purchaseRate: p.purchaseRate,
+								salesRate   : p.salesRate,
+								quantity    : p.SaleReturnDetails_ReturnQuantity,
+								total       : p.SaleReturnDetails_ReturnAmount,
 							}
 							this.cart.push(prod)
 						})

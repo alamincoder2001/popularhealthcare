@@ -581,6 +581,7 @@ $route['get_delivery_order'] = 'Administrator/Order/getDeliveryOrder';
 
 // Get Batch 
 $route['get_batchs'] = 'Administrator/Sales/getBatch';
+$route['check_batch'] = 'Administrator/Sales/checkBatch';
 
 // get report
 $route['get_totalquantity'] = 'Administrator/Sales/getTotalQty';

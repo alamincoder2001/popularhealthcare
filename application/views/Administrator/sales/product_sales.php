@@ -730,7 +730,6 @@
 				}
 
 				this.cart.unshift(product);
-				// console.log(this.cart);
 				this.clearProduct();
 				this.calculateTotal();
 			},
