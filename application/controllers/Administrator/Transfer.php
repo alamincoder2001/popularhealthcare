@@ -72,6 +72,8 @@
                         'transfer_id'   => $transferId,
                         'product_id'    => $cartProduct->product_id,
                         'Batch_No'      => $cartProduct->Batch_No,
+                        'manufac_date'  => $cartProduct->manufac_date,
+                        'expire_date'   => $cartProduct->expire_date,
                         'quantity'      => $cartProduct->quantity,
                         'purchase_rate' => $cartProduct->purchase_rate,
                         'total'         => $cartProduct->total
@@ -161,10 +163,12 @@
 
                 foreach($data->cart as $cartProduct){
                     $transferDetails = array(
-                        'transfer_id' => $transferId,
-                        'product_id' => $cartProduct->product_id,
-                        'Batch_No' => $cartProduct->Batch_No,
-                        'quantity' => $cartProduct->quantity
+                        'transfer_id'  => $transferId,
+                        'product_id'   => $cartProduct->product_id,
+                        'Batch_No'     => $cartProduct->Batch_No,
+                        'manufac_date' => $cartProduct->manufac_date,
+                        'expire_date'  => $cartProduct->expire_date,
+                        'quantity'     => $cartProduct->quantity
                     );
 
                     $this->db->insert('tbl_transferdetails', $transferDetails);

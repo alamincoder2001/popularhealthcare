@@ -161,6 +161,8 @@
                             <th>Product Id</th>
                             <th>Product Name</th>
                             <th>Batch No.</th>
+                            <th>Manufac_date</th>
+                            <th>Expire_date</th>
                             <th>Quantity</th>
                             <th>Amount</th>
                             <th>Action</th>
@@ -172,6 +174,8 @@
                             <td>{{ product.product_code }}</td>
                             <td>{{ product.name }}</td>
                             <td>{{ product.Batch_No }}</td>
+                            <td>{{ product.manufac_date }}</td>
+                            <td>{{ product.expire_date }}</td>
                             <td>
                                 {{product.quantity}}
                                 <!-- <input type="number" v-model="product.quantity" v-on:input="onChangeCartQuantity(product.product_id, product.Batch_No)"> -->
@@ -305,18 +309,24 @@
                     alert('Select product');
                     return;
                 }
+                if (this.selectedBatch == null) {
+                    alert('Select Batch');
+                    return;
+                }
                 if (parseFloat(this.productStock) < parseFloat(this.quantity)) {
                     alert('Stock not available');
                     return;
                 }
                 let cartProduct = {
-                    product_id: this.selectedProduct.Product_SlNo,
-                    product_code: this.selectedProduct.Product_Code,
-                    name: this.selectedProduct.Product_Name,
-                    Batch_No: this.selectedBatch.batch_no,
-                    quantity: this.quantity,
+                    product_id   : this.selectedProduct.Product_SlNo,
+                    product_code : this.selectedProduct.Product_Code,
+                    name         : this.selectedProduct.Product_Name,
+                    Batch_No     : this.selectedBatch.batch_no,
+                    manufac_date : this.selectedBatch.manufac_date,
+                    expire_date  : this.selectedBatch.expire_date,
+                    quantity     : this.quantity,
                     purchase_rate: this.selectedProduct.Product_Purchase_Rate,
-                    total: this.total
+                    total        : this.total
                 }
 
                 let cartInd = this.cart.findIndex(p => p.product_id == cartProduct.product_id && p.Batch_No == cartProduct.Batch_No);
@@ -425,12 +435,15 @@
 
                 this.cart = transferDetails.map(td => {
                     let product = {
-                        product_id: td.product_id,
-                        name: td.Product_Name,
-                        product_code: td.Product_Code,
-                        quantity: td.quantity,
+                        product_id   : td.product_id,
+                        name         : td.Product_Name,
+                        product_code : td.Product_Code,
+                        Batch_No     : td.Batch_No,
+                        manufac_date : td.manufac_date,
+                        expire_date  : td.expire_date,
+                        quantity     : td.quantity,
                         purchase_rate: td.purchase_rate,
-                        total: td.total
+                        total        : td.total
                     }
 
                     return product;

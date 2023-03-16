@@ -2149,6 +2149,8 @@ class Sales extends CI_Controller
 
         $batches = $this->db->query("SELECT
                                     pd.batch_no AS batch_no,
+                                    pd.manufac_date as manufac_date,
+                                    pd.expire_date as expire_date,
                                     CONCAT(pd.batch_no,' - ','Exp-',pd.expire_date) AS display_text,
                                     pm.PurchaseMaster_InvoiceNo AS invoice,
                                     p.Product_Code,
@@ -2158,6 +2160,7 @@ class Sales extends CI_Controller
                                     (SELECT IFNULL(SUM(sd.SaleDetails_TotalQuantity),0)
                                         FROM tbl_saledetails sd
                                         WHERE sd.Product_IDNo = '$data->productId' 
+                                        AND sd.SaleDetails_BranchId = '$this->sbrunch'
                                         AND sd.Status = 'a'
                                         AND sd.Batch_No = pd.batch_no) AS saleQty,
 
@@ -2187,11 +2190,50 @@ class Sales extends CI_Controller
                                     JOIN tbl_product p ON p.Product_SlNo = pd.Product_IDNo
                                     WHERE pd.Product_IDNo = '$data->productId' 
                                     AND pd.status = 'a'
+                                    AND pd.PurchaseDetails_branchID = '$this->sbrunch'
                                     
                                 UNION
-                                
                                 SELECT
-                                    srd.batch_no AS batch_no, 
+                                    trdm.Batch_No AS batch_no,
+                                    trdm.manufac_date as manufac_date,
+                                    trdm.expire_date as expire_date, 
+                                    CONCAT(trdm.Batch_No,' - ','Exp-', trdm.expire_date) AS display_text,
+                                    '' AS invoice,
+                                    p.Product_Code,
+                                    p.Product_Name,
+                                    0 AS purchaseQty,
+                                    
+                                    (SELECT IFNULL(SUM(sd.SaleDetails_TotalQuantity),0)
+                                        FROM tbl_saledetails sd
+                                        WHERE sd.Product_IDNo = '$data->productId' 
+                                        AND sd.Status = 'a'
+                                        AND sd.SaleDetails_BranchId = '$this->sbrunch'
+                                        AND sd.Batch_No = trdm.Batch_No) AS saleQty,
+
+                                    (SELECT IFNULL(SUM(trd.quantity),0)
+                                        FROM tbl_transferdetails trd
+                                        LEFT JOIN tbl_transfermaster tm ON tm.transfer_id = trd.transfer_id
+                                        WHERE trd.product_id = '$data->productId'
+                                        AND tm.transfer_from = '$this->sbrunch'
+                                        AND trd.Batch_No = trdm.Batch_No) AS transferMinusQty,
+
+                                    0 AS transferAddQty,
+                                    
+                                    0 AS purchaseRtnQty,
+                                    
+                                (SELECT((trdm.quantity + transferAddQty) -(saleQty + transferMinusQty))) AS curQty
+                                
+                                FROM tbl_transferdetails trdm
+                                JOIN tbl_product p ON p.Product_SlNo = trdm.product_id
+                                LEFT JOIN tbl_transfermaster tmm ON tmm.transfer_id = trdm.transfer_id
+                                WHERE trdm.product_id = '$data->productId' 
+                                AND tmm.transfer_to = '$this->sbrunch'                               
+                                
+                                UNION
+                                SELECT
+                                    srd.Batch_No AS batch_no,
+                                    srd.manufac_date as manufac_date,
+                                    srd.expire_date as expire_date, 
                                     CONCAT(srd.Batch_No,' - ','Exp-',srd.expire_date) AS display_text,
                                     '' AS invoice,
                                     p.Product_Code,
@@ -2202,6 +2244,7 @@ class Sales extends CI_Controller
                                         FROM tbl_saledetails sd
                                         WHERE sd.Product_IDNo = '$data->productId' 
                                         AND sd.Status = 'a'
+                                        AND sd.SaleDetails_BranchId = '$this->sbrunch'
                                         AND sd.Batch_No = srd.Batch_No) AS saleQty,
 
                                     (SELECT IFNULL(SUM(trd.quantity),0)
@@ -2209,14 +2252,14 @@ class Sales extends CI_Controller
                                         LEFT JOIN tbl_transfermaster tm ON tm.transfer_id = trd.transfer_id
                                         WHERE trd.product_id = '$data->productId'
                                         AND tm.transfer_from = '$this->sbrunch'
-                                        AND trd.Batch_No = srd.batch_no) AS transferMinusQty,
+                                        AND trd.Batch_No = srd.Batch_No) AS transferMinusQty,
 
                                     (SELECT IFNULL(SUM(trd.quantity),0)
                                         FROM tbl_transferdetails trd
                                         LEFT JOIN tbl_transfermaster tm ON tm.transfer_id = trd.transfer_id
                                         WHERE trd.product_id = '$data->productId'
                                         AND tm.transfer_to = '$this->sbrunch'
-                                        AND trd.Batch_No = srd.batch_no) AS transferAddQty,
+                                        AND trd.Batch_No = srd.Batch_No) AS transferAddQty,
                                     
                                     0 AS purchaseRtnQty,
                                     
@@ -2224,7 +2267,8 @@ class Sales extends CI_Controller
                                 
                                 FROM tbl_salereturndetails srd
                                 JOIN tbl_product p ON p.Product_SlNo = srd.SaleReturnDetailsProduct_SlNo
-                                WHERE srd.SaleReturnDetailsProduct_SlNo = '$data->productId' 
+                                WHERE srd.SaleReturnDetailsProduct_SlNo = '$data->productId'
+                                AND srd.SaleReturnDetails_brunchID = '$this->sbrunch'
                                 AND srd.Status = 'a'")->result();
 
         echo json_encode($batches);

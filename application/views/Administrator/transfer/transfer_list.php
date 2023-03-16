@@ -16,11 +16,14 @@
 		flex-wrap:nowrap;
 	}
 	.v-select .selected-tag{
-		margin: 2px 0px;
+		margin: 0px;
 		white-space: nowrap;
 		position:absolute;
 		left: 0px;
 	}
+    .v-select .dropdown-toggle .clear{
+        line-height: 0;
+    }
 	.v-select .vs__actions{
 		margin-top:-5px;
 	}
