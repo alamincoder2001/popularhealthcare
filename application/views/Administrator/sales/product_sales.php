@@ -47,28 +47,28 @@
 	<div class="col-xs-12 col-md-12 col-lg-12" style="border-bottom:1px #ccc solid;margin-bottom:5px;">
 		<div class="row">
 			<div class="form-group">
-				<label class="col-sm-1 control-label no-padding-right"> Invoice no </label>
-				<div class="col-sm-2">
+				<label class="col-lg-1 col-xs-4 control-label no-padding-right"> Invoice no </label>
+				<div class="col-lg-2 col-xs-8">
 					<input type="text" id="invoiceNo" class="form-control" v-model="sales.invoiceNo" readonly />
 				</div>
 			</div>
 
 			<div class="form-group">
-				<label class="col-sm-1 control-label no-padding-right"> Sales By </label>
-				<div class="col-sm-2">
+				<label class="col-lg-1 col-xs-4 control-label no-padding-right"> Sales By </label>
+				<div class="col-lg-2 col-xs-8">
 					<v-select v-bind:options="employees" id="employee" v-model="selectedEmployee" label="Employee_Name" placeholder="Select Employee" v-bind:disabled="userType == 'u' || userType == 'e' ? true : false"></v-select>
 				</div>
 			</div>
 
 			<div class="form-group">
-				<label class="col-sm-1 control-label no-padding-right"> Sales From </label>
-				<div class="col-sm-2">
+				<label class="col-lg-1 col-xs-4 control-label no-padding-right"> Sales From </label>
+				<div class="col-lg-2 col-xs-8">
 					<v-select id="branchDropdown" v-bind:options="branches" label="Brunch_name" v-model="selectedBranch" disabled></v-select>
 				</div>
 			</div>
 
 			<div class="form-group">
-				<div class="col-sm-3">
+				<div class="col-lg-3 col-xs-12">
 					<input class="form-control" id="salesDate" type="date" v-model="sales.salesDate" v-bind:disabled="userType == 'u' ? true : false" />
 				</div>
 			</div>
@@ -95,7 +95,7 @@
 				<div class="widget-main">
 
 					<div class="row">
-						<div class="col-sm-5">
+						<div class="col-lg-5 col-xs-12">
 							<div class="form-group clearfix" style="margin-bottom: 8px;">
 								<label class="col-xs-4 control-label no-padding-right"> Sales Type </label>
 								<div class="col-xs-8">
@@ -137,7 +137,7 @@
 							</div>
 						</div>
 
-						<div class="col-sm-5">
+						<div class="col-lg-5 col-xs-12">
 							<form v-on:submit.prevent="addToCart">
 								<div class="form-group">
 									<label class="col-xs-3 control-label no-padding-right"> Product </label>
@@ -201,7 +201,7 @@
 							</form>
 
 						</div>
-						<div class="col-sm-2">
+						<div class="col-lg-2 col-xs-12">
 							<div style="display:none;" v-bind:style="{display:sales.isService == 'true' ? 'none' : ''}">
 								<div class="text-center" style="display:none;" v-bind:style="{color: productStock > 0 ? 'green' : 'red', display: selectedProduct.Product_SlNo == '' ? 'none' : ''}">{{ productStockText }}</div class="text-center">
 

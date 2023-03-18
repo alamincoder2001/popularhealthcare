@@ -530,6 +530,7 @@ class Sales extends CI_Controller
             $this->db->trans_begin();
             $data = json_decode($this->input->raw_input_stream);
             $salesReturn = array(
+                'employeeId'              => $data->salesReturn->employeeId,
                 'customerId'              => $data->salesReturn->customerId,
                 'SaleReturn_ReturnDate'   => $data->salesReturn->returnDate,
                 'SaleReturn_ReturnAmount' => $data->salesReturn->total,
@@ -669,6 +670,7 @@ class Sales extends CI_Controller
             $oldDetails = $this->db->query("select * from tbl_salereturndetails sr where sr.SaleReturn_IdNo = ?", $salesReturnId)->result();
 
             $salesReturn = array(
+                'employeeId'              => $data->salesReturn->employeeId,
                 'customerId'              => $data->salesReturn->customerId,
                 'SaleReturn_ReturnDate'   => $data->salesReturn->returnDate,
                 'SaleReturn_ReturnAmount' => $data->salesReturn->total,
@@ -891,8 +893,14 @@ class Sales extends CI_Controller
         $data = json_decode($this->input->raw_input_stream);
 
         $clauses = "";
-        if ((isset($data->fromDate) && $data->fromDate != '') && (isset($data->toDate) && $data->toDate != '')) {
-            $clauses .= " and sr.SaleReturn_ReturnDate between '$data->fromDate' and '$data->toDate'";
+        if ((isset($data->dateFrom) && $data->dateFrom != '') && (isset($data->dateTo) && $data->dateTo != '')) {
+            $clauses .= " and sr.SaleReturn_ReturnDate between '$data->dateFrom' and '$data->dateTo'";
+        }
+        if (isset($data->employeeId) && $data->employeeId != '') {
+            $clauses .= " and sr.employeeId = '$data->employeeId'";
+        }
+        if (isset($data->customerId) && $data->customerId != '') {
+            $clauses .= " and sr.customerId = '$data->customerId'";
         }
 
         if (isset($data->id) && $data->id != '') {
@@ -918,8 +926,10 @@ class Sales extends CI_Controller
                 c.Customer_Address,
                 c.Customer_Mobile,
                 c.owner_name,
-                concat_ws('-', c.Customer_Code, c.Customer_Name, c.owner_name, c.Customer_Mobile) as display_name
+                concat_ws('-', c.Customer_Code, c.Customer_Name, c.owner_name, c.Customer_Mobile) as display_name,
+                e.Employee_Name as employee_name
             from tbl_salereturn sr
+            left join tbl_employee e on e.Employee_SlNo = sr.employeeId
             left join tbl_customer c on c.Customer_SlNo = sr.customerId
             where sr.Status = 'a'
             and sr.SaleReturn_brunchId = '$this->sbrunch'

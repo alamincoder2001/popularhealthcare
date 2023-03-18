@@ -70,23 +70,33 @@
 			<div class="widget-body" style="background:#fff6f6">
 				<div class="widget-main">
 					<div class="row">
-						<div class="col-xs-12 col-lg-4">
-							<form v-on:submit.prevent="addToCartReturn">
+						<div class="col-xs-12 col-md-12 col-lg-12" style="border-bottom:1px #ccc solid;margin-bottom:10px;">
+							<div class="row">
 								<div class="form-group">
-									<label class="col-xs-4 control-label no-padding-right"> Return Date </label>
-									<div class="col-xs-8">
-										<input type="date" class="form-control" v-model="salesReturn.returnDate">
+									<label class="col-xs-4 col-lg-1 control-label no-padding-right" style="margin-top: 3px; margin-bottom:5px;"> Employee </label>
+									<div class="col-xs-8 col-lg-3" style="margin-top: 3px; margin-bottom:5px;">
+										<v-select v-bind:options="employees" id="employee" v-model="selectedEmployee" label="Employee_Name" placeholder="Select Employee"></v-select>
 									</div>
 								</div>
 								<div class="form-group">
-									<label class="col-xs-4 control-label no-padding-right" style="margin-top: 3px;"> Customer </label>
-									<div class="col-xs-8" style="margin-top: 3px;">
+									<label class="col-xs-4 col-lg-1 control-label no-padding-right" style="margin-top: 3px;"> Customer </label>
+									<div class="col-xs-8 col-lg-3" style="margin-top: 3px;">
 										<v-select id="customer" v-bind:options="customers" v-model="selectedCustomer" label="display_name"></v-select>
 									</div>
 								</div>
 								<div class="form-group">
-									<label class="col-xs-4 control-label no-padding-right" style="margin-top: 8px;"> Product </label>
-									<div class="col-xs-8" style="margin-top: 8px;">
+									<label class="col-xs-4 col-lg-2 control-label no-padding-right"> Return Date </label>
+									<div class="col-xs-8 col-lg-2">
+										<input type="date" class="form-control" v-model="salesReturn.returnDate">
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-xs-12 col-lg-4">
+							<form v-on:submit.prevent="addToCartReturn">
+								<div class="form-group">
+									<label class="col-xs-4 control-label no-padding-right"> Product </label>
+									<div class="col-xs-8">
 										<v-select id="product" v-bind:options="products" v-model="selectedProduct" label="display_text" @input="onChangeProduct"></v-select>
 									</div>
 								</div>
@@ -100,14 +110,14 @@
 								<div class="form-group">
 									<label class="col-xs-4 control-label no-padding-right"> Manufa. Date </label>
 									<div class="col-xs-8">
-										<input type="date" id="ExpireDate" class="form-control"  v-model="selectedProduct.manufac_date" required />
+										<input type="date" id="ExpireDate" class="form-control" v-model="selectedProduct.manufac_date" required />
 									</div>
 								</div>
 
 								<div class="form-group">
 									<label class="col-xs-4 control-label no-padding-right"> Expire Date </label>
 									<div class="col-xs-8">
-										<input type="date" id="ExpireDate" class="form-control"  v-model="selectedProduct.expire_date" required />
+										<input type="date" id="ExpireDate" class="form-control" v-model="selectedProduct.expire_date" required />
 									</div>
 								</div>
 
@@ -116,7 +126,7 @@
 									<div class="col-xs-8">
 										<input type="text" placeholder="Batch" class="form-control" v-model="selectedProduct.Batch_No" />
 									</div>
-								</div>								
+								</div>
 
 								<div class="form-group">
 									<label class="col-xs-4 control-label no-padding-right"> Purchase Rate </label>
@@ -226,6 +236,12 @@
 		el: '#salesReturn',
 		data() {
 			return {
+				employees: [],
+				selectedEmployee: {
+					Employee_SlNo: "<?php echo $this->session->userdata('EmployeeID'); ?>",
+					Employee_Name: "<?php echo $this->session->userdata('Employee_name'); ?>",
+					Category_ID: "<?php echo $this->session->userdata('Category_ID'); ?>"
+				},
 				customers: [],
 				selectedCustomer: {
 					Customer_SlNo: '',
@@ -246,6 +262,7 @@
 				salesReturn: {
 					returnId: parseInt('<?php echo $returnId; ?>'),
 					returnDate: moment().format('YYYY-MM-DD'),
+					employeeId: "",
 					customerId: "",
 					total: 0.00,
 					note: ''
@@ -256,11 +273,17 @@
 		created() {
 			this.getCustomers();
 			this.getProducts();
+			this.getEmployees();
 			if (this.salesReturn.returnId != 0) {
 				this.getSaleReturn()
 			}
 		},
 		methods: {
+			getEmployees() {
+				axios.get('/get_employees').then(res => {
+					this.employees = res.data;
+				})
+			},
 			getCustomers() {
 				axios.get('/get_customers').then(res => {
 					this.customers = res.data;
@@ -299,16 +322,16 @@
 
 			addToCartReturn() {
 				let product = {
-					productId   : this.selectedProduct.Product_SlNo,
-					productCode : this.selectedProduct.Product_Code,
-					name        : this.selectedProduct.Product_Name,
+					productId: this.selectedProduct.Product_SlNo,
+					productCode: this.selectedProduct.Product_Code,
+					name: this.selectedProduct.Product_Name,
 					manufac_date: this.selectedProduct.manufac_date,
-					expire_date : this.selectedProduct.expire_date,
-					Batch_No    : this.selectedProduct.Batch_No,
+					expire_date: this.selectedProduct.expire_date,
+					Batch_No: this.selectedProduct.Batch_No,
 					purchaseRate: this.selectedProduct.Product_Purchase_Rate,
-					salesRate   : this.selectedProduct.Product_SellingPrice,
-					quantity    : this.selectedProduct.quantity,
-					total       : this.selectedProduct.total,
+					salesRate: this.selectedProduct.Product_SellingPrice,
+					quantity: this.selectedProduct.quantity,
+					total: this.selectedProduct.total,
 				}
 
 				if (product.productId == '') {
@@ -352,6 +375,18 @@
 					document.querySelector("#customer [type='search']").focus()
 					return
 				}
+
+				if (this.selectedEmployee.Employee_SlNo == '') {
+					alert("Please select employee")
+					document.querySelector("#employee [type='search']").focus()
+					return
+				}
+				if (this.cart.length == 0) {
+					alert("Cart is empty")
+					return
+				}
+
+				this.salesReturn.employeeId = this.selectedEmployee.Employee_SlNo
 				this.salesReturn.customerId = this.selectedCustomer.Customer_SlNo
 				let data = {
 					salesReturn: this.salesReturn,
@@ -406,16 +441,16 @@
 						}
 						res.data.returnDetails.forEach(p => {
 							let prod = {
-								productId   : p.SaleReturnDetailsProduct_SlNo,
-								productCode : p.Product_Code,
-								name        : p.Product_Name,
-								Batch_No    : p.Batch_No,
+								productId: p.SaleReturnDetailsProduct_SlNo,
+								productCode: p.Product_Code,
+								name: p.Product_Name,
+								Batch_No: p.Batch_No,
 								manufac_date: p.manufac_date,
-								expire_date : p.expire_date,
+								expire_date: p.expire_date,
 								purchaseRate: p.purchaseRate,
-								salesRate   : p.salesRate,
-								quantity    : p.SaleReturnDetails_ReturnQuantity,
-								total       : p.SaleReturnDetails_ReturnAmount,
+								salesRate: p.salesRate,
+								quantity: p.SaleReturnDetails_ReturnQuantity,
+								total: p.SaleReturnDetails_ReturnAmount,
 							}
 							this.cart.push(prod)
 						})
@@ -423,6 +458,10 @@
 						this.selectedCustomer = {
 							Customer_SlNo: res.data.returns[0].customerId,
 							display_name: res.data.returns[0].display_name,
+						}
+						this.selectedEmployee = {
+							Employee_SlNo: res.data.returns[0].employeeId,
+							Employee_Name: res.data.returns[0].employee_name,
 						}
 					})
 			}

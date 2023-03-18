@@ -1,75 +1,101 @@
 <style>
-    .v-select{
-		margin-top:-2.5px;
-        float: right;
-        min-width: 180px;
-        margin-left: 5px;
+	.v-select {
+		margin-top: -2.5px;
+		float: right;
+		min-width: 180px;
+		margin-left: 5px;
 	}
-	.v-select .dropdown-toggle{
+
+	.v-select .dropdown-toggle {
 		padding: 0px;
-        height: 25px;
+		height: 25px;
 	}
-	.v-select input[type=search], .v-select input[type=search]:focus{
+
+	.v-select input[type=search],
+	.v-select input[type=search]:focus {
 		margin: 0px;
 	}
-	.v-select .vs__selected-options{
+
+	.v-select .vs__selected-options {
 		overflow: hidden;
-		flex-wrap:nowrap;
+		flex-wrap: nowrap;
 	}
-	.v-select .selected-tag{
+
+	.v-select .selected-tag {
 		margin: 2px 0px;
 		white-space: nowrap;
-		position:absolute;
+		position: absolute;
 		left: 0px;
 	}
-	.v-select .vs__actions{
-		margin-top:-5px;
+
+	.v-select .vs__actions {
+		margin-top: -5px;
 	}
-	.v-select .dropdown-menu{
+
+	.v-select .dropdown-menu {
 		width: auto;
-		overflow-y:auto;
+		overflow-y: auto;
 	}
-	#searchForm select{
-		padding:0;
+
+	#searchForm select {
+		padding: 0;
 		border-radius: 4px;
 	}
-	#searchForm .form-group{
+
+	#searchForm .form-group {
 		margin-right: 5px;
 	}
-	#searchForm *{
+
+	#searchForm * {
 		font-size: 13px;
 	}
-	.record-table{
+
+	.record-table {
 		width: 100%;
 		border-collapse: collapse;
 	}
-	.record-table thead{
+
+	.record-table thead {
 		background-color: #0097df;
-		color:white;
+		color: white;
 	}
-	.record-table th, .record-table td{
+
+	.record-table th,
+	.record-table td {
 		padding: 3px;
 		border: 1px solid #454545;
 	}
-    .record-table th{
-        text-align: center;
-    }
+
+	.record-table th {
+		text-align: center;
+	}
 </style>
 <div id="saleReturnList">
 	<div class="row" style="border-bottom: 1px solid #ccc;padding: 3px 0;">
 		<div class="col-md-12">
 			<form class="form-inline" id="searchForm" @submit.prevent="getReturns">
 				<div class="form-group">
+					<select class="form-control" v-model="searchBy">
+						<option value="">All</option>
+						<option value="employee">Employee</option>
+						<option value="customer">Customer</option>
+					</select>
+				</div>
+				<div class="form-group" v-if="searchBy == 'employee'">
+					<label>Employee</label>
+					<v-select v-bind:options="employees" id="employee" v-model="selectedEmployee" label="Employee_Name" placeholder="Select Employee"></v-select>
+				</div>
+				<div class="form-group" v-if="searchBy == 'customer'">
 					<label>Customer</label>
 					<v-select v-bind:options="customers" v-model="selectedCustomer" label="display_name"></v-select>
 				</div>
 
 				<div class="form-group">
-					<input type="date" class="form-control" v-model="fromDate">
+					<input type="date" class="form-control" v-model="dateFrom">
 				</div>
 
 				<div class="form-group">
-					<input type="date" class="form-control" v-model="toDate">
+					<input type="date" class="form-control" v-model="dateTo">
 				</div>
 
 				<div class="form-group" style="margin-top: -5px;">
@@ -100,15 +126,15 @@
 						<tr v-for="saleReturn in returns">
 							<td>{{ saleReturn.SaleMaster_InvoiceNo }}</td>
 							<td>{{ saleReturn.SaleReturn_ReturnDate }}</td>
-							<td>{{ saleReturn.Customer_Code }}  {{ saleReturn.Customer_Name }}</td>
+							<td>{{ saleReturn.Customer_Code }} {{ saleReturn.Customer_Name }}</td>
 							<td>{{ saleReturn.SaleReturn_Description }}</td>
 							<td style="text-align:right;">{{ saleReturn.SaleReturn_ReturnAmount }}</td>
 							<td style="text-align:center;">
 								<a href="" title="Return Invoice" v-bind:href="`/sale_return_invoice/${saleReturn.SaleReturn_SlNo}`" target="_blank"><i class="fa fa-file"></i></a>
-								<?php if($this->session->userdata('accountType') != 'u'){?>
-								<a href="" title="Edit" v-bind:href="`salesReturn/${saleReturn.SaleReturn_SlNo}`"><i class="fa fa-edit"></i></a>
-								<a href="" title="Delete Return" @click.prevent="deleteReturn(saleReturn.SaleReturn_SlNo)"><i class="fa fa-trash"></i></a>
-								<?php }?>
+								<?php if ($this->session->userdata('accountType') != 'u') { ?>
+									<a href="" title="Edit" v-bind:href="`salesReturn/${saleReturn.SaleReturn_SlNo}`"><i class="fa fa-edit"></i></a>
+									<a href="" title="Delete Return" @click.prevent="deleteReturn(saleReturn.SaleReturn_SlNo)"><i class="fa fa-trash"></i></a>
+								<?php } ?>
 							</td>
 						</tr>
 						<tr style="font-weight:bold;">
@@ -123,76 +149,107 @@
 	</div>
 </div>
 
-<script src="<?php echo base_url();?>assets/js/vue/vue.min.js"></script>
-<script src="<?php echo base_url();?>assets/js/vue/axios.min.js"></script>
-<script src="<?php echo base_url();?>assets/js/vue/vue-select.min.js"></script>
-<script src="<?php echo base_url();?>assets/js/moment.min.js"></script>
+<script src="<?php echo base_url(); ?>assets/js/vue/vue.min.js"></script>
+<script src="<?php echo base_url(); ?>assets/js/vue/axios.min.js"></script>
+<script src="<?php echo base_url(); ?>assets/js/vue/vue-select.min.js"></script>
+<script src="<?php echo base_url(); ?>assets/js/moment.min.js"></script>
 
 <script>
 	Vue.component('v-select', VueSelect.VueSelect);
 	new Vue({
 		el: '#saleReturnList',
-		data(){
+		data() {
 			return {
-				fromDate: moment().format('YYYY-MM-DD'),
-				toDate: moment().format('YYYY-MM-DD'),
+				searchBy: "",
+				dateFrom: moment().format('YYYY-MM-DD'),
+				dateTo: moment().format('YYYY-MM-DD'),
+				employees: [],
+				selectedEmployee: {
+					Employee_SlNo: "",
+					Employee_Name: "",
+					Category_ID: ""
+				},
 				customers: [],
 				selectedCustomer: null,
 				returns: []
 			}
 		},
-		created(){
+		created() {
+			this.getEmployees();
 			this.getCustomers();
 		},
+		watch: {
+			searchBy() {
+				if (this.searchBy == 'employee') {
+					this.selectedCustomer = null
+				} else if (this.searchBy == 'customer') {
+					this.selectedEmployee = {
+						Employee_SlNo: "",
+						Employee_Name: "",
+						Category_ID: ""
+					}
+				} else {
+					this.selectedCustomer = null
+					this.selectedEmployee = {
+						Employee_SlNo: "",
+						Employee_Name: "",
+						Category_ID: ""
+					}
+				}
+			}
+		},
 		methods: {
-			getCustomers(){
+			getEmployees() {
+				axios.get('/get_employees').then(res => {
+					this.employees = res.data;
+				})
+			},
+			getCustomers() {
 				axios.get('/get_customers').then(res => {
 					this.customers = res.data;
 				})
 			},
-			getReturns(){
+			getReturns() {
 				let filter = {
+					employeeId: this.selectedEmployee == null || this.selectedEmployee.Employee_SlNo == '' ? '' : this.selectedEmployee.Employee_SlNo,
 					customerId: this.selectedCustomer == null || this.selectedCustomer.Customer_SlNo == '' ? '' : this.selectedCustomer.Customer_SlNo,
-					fromDate: this.fromDate,
-					toDate: this.toDate
+					dateFrom: this.dateFrom,
+					dateTo: this.dateTo
 				}
 
 				axios.post('/get_sale_returns', filter)
-				.then(res => {
-					this.returns = res.data.returns;
-					if(res.data.length == 0){
-						alert('No records found');
-					}
-				})
-				.catch(error => {
-					if(error.response){
-						alert(`${error.response.status}, ${error.response.statusText}`);
-					}
-				})
+					.then(res => {
+						this.returns = res.data.returns;
+						if (res.data.length == 0) {
+							alert('No records found');
+						}
+					})
 			},
 			deleteReturn(id) {
 				console.log(id);
 				let conf = confirm('Are you sure?');
-				if(conf == false) {
+				if (conf == false) {
 					return;
 				}
-				axios.post('/delete_sale_return', { id })
-				.then(res => {
-					let r = res.data;
-					alert(r.message);
-					if(r.success) {
-						this.getReturns();
-					}
-				})
+				axios.post('/delete_sale_return', {
+						id
+					})
+					.then(res => {
+						let r = res.data;
+						alert(r.message);
+						if (r.success) {
+							this.getReturns();
+						}
+					})
 			},
-			async print(){
+			async print() {
 				let dateText = '';
-				if(this.fromDate != '' && this.toDate != ''){
-					dateText = `Statemenet from <strong>${this.fromDate}</strong> to <strong>${this.toDate}</strong>`;
+				if (this.dateFrom != '' && this.dateTo != '') {
+					dateText = `Statemenet from <strong>${this.dateFrom}</strong> to <strong>${this.dateTo}</strong>`;
 				}
 
 				let customerText = '';
-				if(this.selectedCustomer != null && this.selectedCustomer.Customer_SlNo != ''){
+				if (this.selectedCustomer != null && this.selectedCustomer.Customer_SlNo != '') {
 					customerText = `<strong>Customer: </strong> ${this.selectedCustomer.Customer_Name}<br>`;
 				}
 
@@ -221,7 +278,7 @@
 
 				var reportWindow = window.open('', 'PRINT', `height=${screen.height}, width=${screen.width}`);
 				reportWindow.document.write(`
-					<?php $this->load->view('Administrator/reports/reportHeader.php');?>
+					<?php $this->load->view('Administrator/reports/reportHeader.php'); ?>
 				`);
 
 				reportWindow.document.head.innerHTML += `
