@@ -113,6 +113,12 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
+                                        <label class="control-label col-md-4">Batch</label>
+                                        <div class="col-md-8">
+                                            <v-select id="batch" v-bind:options="batches" v-model="selectedBatch" label="display_text" @input="BatchOnChange"></v-select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
                                         <label class="control-label col-md-4">Quantity</label>
                                         <div class="col-md-8">
                                             <input type="number" class="form-control" v-model="quantity" ref="quantity" required v-on:input="productTotal">
@@ -157,6 +163,9 @@
                             <th>Sl</th>
                             <th>Product Id</th>
                             <th>Product Name</th>
+                            <th>Batch No.</th>
+                            <th>Manufac_date</th>
+                            <th>Expire_date</th>
                             <th>Quantity</th>
                             <th>Amount</th>
                             <th>Action</th>
@@ -167,7 +176,12 @@
                             <td>{{ sl + 1 }}</td>
                             <td>{{ product.product_code }}</td>
                             <td>{{ product.name }}</td>
-                            <td><input type="number" v-model="product.quantity" v-on:input="onChangeCartQuantity(product.product_id)"></td>
+                            <td>{{ product.Batch_No }}</td>
+                            <td>{{ product.manufac_date }}</td>
+                            <td>{{ product.expire_date }}</td>
+                            <td>
+                                {{product.quantity}}
+                            </td>
                             <td>{{ product.total }}</td>
                             <td><a href="" v-on:click.prevent="removeFromCart(sl)"><i class="fa fa-trash"></i></a></td>
                         </tr>
@@ -195,7 +209,7 @@
         el: '#productTransfer',
         data() {
             return {
-                transferId: parseInt('<?php echo $transferId;?>'),
+                transferId: parseInt('<?php echo $transferId; ?>'),
                 transfer: {
                     transfer_id: 0,
                     transfer_date: moment().format('YYYY-MM-DD'),
@@ -214,6 +228,8 @@
                 selectedBranch: null,
                 products: [],
                 selectedProduct: null,
+                batches: [],
+                selectedBatch: null,
                 productStock: 0,
                 quantity: '',
                 total: '',
@@ -224,7 +240,7 @@
             this.getBranches();
             this.getProducts();
 
-            if(this.transferId != 0) {
+            if (this.transferId != 0) {
                 await this.getTransfer();
             }
         },
@@ -237,7 +253,7 @@
 
             getBranches() {
                 axios.get('/get_branches').then(res => {
-                    let currentBranchId = parseInt("<?php echo $this->session->userdata('BRANCHid');?>");
+                    let currentBranchId = parseInt("<?php echo $this->session->userdata('BRANCHid'); ?>");
                     let currentBranchInd = res.data.findIndex(branch => branch.brunch_id == currentBranchId);
                     res.data.splice(currentBranchInd, 1);
                     this.branches = res.data;
@@ -245,50 +261,81 @@
             },
 
             getProducts() {
-                axios.post('/get_products', {isService: 'false'}).then(res => {
+                axios.post('/get_products', {
+                    isService: 'false'
+                }).then(res => {
                     this.products = res.data;
                 })
             },
 
-            async onChangeProduct(){
-                if(this.selectedProduct == null){
+            async onChangeProduct() {
+                if (this.selectedProduct == null) {
                     return;
                 }
-                
+                this.selectedBatch = null
+
+                axios.post('/get_batchs', {
+                        productId: this.selectedProduct.Product_SlNo
+                    })
+                    .then(res => {
+                        this.batches = res.data.filter(item => item.curQty > 0);
+                    })
                 this.productStock = await this.getProductStock(this.selectedProduct.Product_SlNo);
+            },
+
+            BatchOnChange() {
+                if (this.selectedBatch == null) {
+                    return
+                }
+                this.productStock = this.selectedBatch.curQty
+
                 this.$refs.quantity.focus();
             },
 
-            async getProductStock(productId){
-                let stock = await axios.post('/get_product_stock', {productId: productId}).then(res => {
-                     return res.data;
+            async getProductStock(productId) {
+                let stock = await axios.post('/get_product_stock', {
+                    productId: productId
+                }).then(res => {
+                    return res.data;
                 })
                 return stock;
             },
 
             productTotal() {
-                if(this.selectedProduct == null) {
+                if (this.selectedProduct == null) {
                     return;
                 }
                 this.total = this.quantity * this.selectedProduct.Product_Purchase_Rate;
             },
 
-            addToCart(){
-                if(this.selectedProduct == null){
+            addToCart() {
+                if (this.selectedProduct == null) {
                     alert('Select product');
                     return;
                 }
-                if(this.productStock < this.quantity){
+                if (this.selectedBatch == null) {
+                    alert('Select Batch');
+                    return;
+                }
+                if (parseFloat(this.productStock) < parseFloat(this.quantity)) {
                     alert('Stock not available');
                     return;
                 }
                 let cartProduct = {
-                    product_id: this.selectedProduct.Product_SlNo,
-                    name: this.selectedProduct.Product_Name,
-                    product_code: this.selectedProduct.Product_Code,
-                    quantity: this.quantity,
+                    product_id   : this.selectedProduct.Product_SlNo,
+                    product_code : this.selectedProduct.Product_Code,
+                    name         : this.selectedProduct.Product_Name,
+                    Batch_No     : this.selectedBatch.batch_no,
+                    manufac_date : this.selectedBatch.manufac_date,
+                    expire_date  : this.selectedBatch.expire_date,
+                    quantity     : this.quantity,
                     purchase_rate: this.selectedProduct.Product_Purchase_Rate,
-                    total: this.total
+                    total        : this.total
+                }
+
+                let cartInd = this.cart.findIndex(p => p.product_id == cartProduct.product_id && p.Batch_No == cartProduct.Batch_No);
+                if (cartInd > -1) {
+                    this.cart.splice(cartInd, 1);
                 }
 
                 this.cart.push(cartProduct);
@@ -296,47 +343,46 @@
                 this.selectedProduct = null;
                 this.quantity = '';
                 this.total = '';
-                let productSearchBox = document.querySelector('#product input[role="combobox"]');
-                productSearchBox.focus();
+                document.querySelector('#product input[role="combobox"]').focus();
             },
 
-            async onChangeCartQuantity(productId){
+            async onChangeCartQuantity(productId) {
                 let cartInd = this.cart.findIndex(product => product.product_id == productId);
-                
-                if(this.transfer.transfer_id == 0) {
+
+                if (this.transfer.transfer_id == 0) {
                     let stock = await this.getProductStock(productId);
 
-                    if(this.cart[cartInd].quantity > stock){
+                    if (this.cart[cartInd].quantity > stock) {
                         alert('Stock not available');
                         this.cart[cartInd].quantity = stock;
                     }
                 }
-                
+
                 this.cart[cartInd].total = this.cart[cartInd].quantity * this.cart[cartInd].purchase_rate;
 
             },
 
-            removeFromCart(cartInd){
+            removeFromCart(cartInd) {
                 this.cart.splice(cartInd, 1);
             },
 
-            saveProductTransfer(){
-                if(this.transfer.transfer_date == null){
+            saveProductTransfer() {
+                if (this.transfer.transfer_date == null) {
                     alert('Select transfer date');
                     return;
                 }
 
-                if(this.selectedEmployee == null){
+                if (this.selectedEmployee == null) {
                     alert('Select transfer by');
                     return;
                 }
 
-                if(this.selectedBranch == null){
+                if (this.selectedBranch == null) {
                     alert('Select branch');
                     return;
                 }
 
-                if(this.transfer.transfer_issue == 'true'){
+                if (this.transfer.transfer_issue == 'true') {
                     alert('Already transfer this invoice');
                     return
                 }
@@ -346,7 +392,9 @@
                     cart: this.cart
                 }
 
-                this.transfer.total_amount = this.cart.reduce((p, c) => { return p + +c.total }, 0);
+                this.transfer.total_amount = this.cart.reduce((p, c) => {
+                    return p + +c.total
+                }, 0);
                 this.transfer.transfer_by = this.selectedEmployee.Employee_SlNo;
                 this.transfer.transfer_to = this.selectedBranch.brunch_id;
                 this.transfer.transferId = this.transferId
@@ -354,28 +402,32 @@
 
 
                 let url = '/add_product_transfer';
-                if(this.transfer.transfer_id != 0) {
+                if (this.transfer.transfer_id != 0) {
                     url = '/update_product_transfer';
                 }
                 axios.post(url, data).then(res => {
-                     let r = res.data;
-                     alert(r.message);
-                     if(r.success){
-                         location.reload();
-                     }
+                    let r = res.data;
+                    alert(r.message);
+                    if (r.success) {
+                        location.reload();
+                    }
                 })
             },
 
             async getTransfer() {
-                let transfer = await axios.post('/get_transfers', {transferId: this.transferId}).then(res => {
+                let transfer = await axios.post('/get_transfers', {
+                    transferId: this.transferId
+                }).then(res => {
                     return res.data[0];
                 })
 
-                this.transfer.note          = transfer.note
-                this.transfer.total_amount  = transfer.total_amount
+                this.transfer.note = transfer.note
+                this.transfer.total_amount = transfer.total_amount
                 this.transfer.transfer_issue = transfer.transfer_issue
 
-                let transferDetails = await axios.post('/get_transfer_details', {transferId: this.transferId}).then(res => {
+                let transferDetails = await axios.post('/get_transfer_details', {
+                    transferId: this.transferId
+                }).then(res => {
                     return res.data;
                 })
 
@@ -384,6 +436,9 @@
                         product_id: td.product_id,
                         name: td.Product_Name,
                         product_code: td.Product_Code,
+                        Batch_No: td.Batch_No,
+                        manufac_date: td.manufac_date,
+                        expire_date: td.expire_date,
                         quantity: td.quantity,
                         purchase_rate: td.purchase_rate,
                         total: td.total

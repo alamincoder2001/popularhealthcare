@@ -76,15 +76,15 @@
 						<td></td>
 						<td style="text-align:left;">Previous Stock</td>
 						<td colspan="3"></td>
-						<td style="text-align:right;">{{ parseFloat(previousStock).toFixed(2) }}</td>
+						<td style="text-align:right;">{{ parseFloat(previousStock) }}</td>
 					</tr>
 					<tr v-for="row in ledger">
 						<td>{{ row.date }}</td>
 						<td style="text-align:left;">{{ row.description }}</td>
 						<td style="text-align:right;">{{ parseFloat(row.rate).toFixed(2) }}</td>
-						<td style="text-align:right;">{{ parseFloat(row.in_quantity).toFixed(2) }}</td>
-						<td style="text-align:right;">{{ parseFloat(row.out_quantity).toFixed(2) }}</td>
-						<td style="text-align:right;">{{ parseFloat(row.stock).toFixed(2) }}</td>
+						<td style="text-align:right;">{{ parseFloat(row.in_quantity) }}</td>
+						<td style="text-align:right;">{{ parseFloat(row.out_quantity) }}</td>
+						<td style="text-align:right;">{{ parseFloat(row.stock) }}</td>
 					</tr>
 				</tbody>
 				<tbody v-if="ledger.length == 0">

@@ -2148,6 +2148,7 @@ class Sales extends CI_Controller
         $data = json_decode($this->input->raw_input_stream);
 
         $batches = $this->db->query("SELECT
+                                    pd.PurchaseDetails_SlNo as id,
                                     pd.batch_no AS batch_no,
                                     pd.manufac_date as manufac_date,
                                     pd.expire_date as expire_date,
@@ -2194,6 +2195,7 @@ class Sales extends CI_Controller
                                     
                                 UNION
                                 SELECT
+                                    trdm.transferdetails_id as id,
                                     trdm.Batch_No AS batch_no,
                                     trdm.manufac_date as manufac_date,
                                     trdm.expire_date as expire_date, 
@@ -2217,20 +2219,26 @@ class Sales extends CI_Controller
                                         AND tm.transfer_from = '$this->sbrunch'
                                         AND trd.Batch_No = trdm.Batch_No) AS transferMinusQty,
 
-                                    0 AS transferAddQty,
+                                    (SELECT IFNULL(SUM(trd.quantity),0)
+                                        FROM tbl_transferdetails trd
+                                        LEFT JOIN tbl_transfermaster tm ON tm.transfer_id = trd.transfer_id
+                                        WHERE trd.product_id = '$data->productId'
+                                        AND tm.transfer_to = '$this->sbrunch'
+                                        AND trd.Batch_No = trdm.Batch_No) AS transferAddQty,
                                     
                                     0 AS purchaseRtnQty,
                                     
-                                (SELECT((trdm.quantity + transferAddQty) -(saleQty + transferMinusQty))) AS curQty
+                                (SELECT((transferAddQty) -(saleQty + transferMinusQty))) AS curQty
                                 
                                 FROM tbl_transferdetails trdm
                                 JOIN tbl_product p ON p.Product_SlNo = trdm.product_id
                                 LEFT JOIN tbl_transfermaster tmm ON tmm.transfer_id = trdm.transfer_id
                                 WHERE trdm.product_id = '$data->productId' 
-                                AND tmm.transfer_to = '$this->sbrunch'                               
+                                AND tmm.transfer_to = '$this->sbrunch' GROUP BY batch_no                   
                                 
                                 UNION
                                 SELECT
+                                    srd.SaleReturnDetails_SlNo as id,
                                     srd.Batch_No AS batch_no,
                                     srd.manufac_date as manufac_date,
                                     srd.expire_date as expire_date, 

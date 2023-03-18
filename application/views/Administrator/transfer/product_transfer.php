@@ -178,7 +178,6 @@
                             <td>{{ product.expire_date }}</td>
                             <td>
                                 {{product.quantity}}
-                                <!-- <input type="number" v-model="product.quantity" v-on:input="onChangeCartQuantity(product.product_id, product.Batch_No)"> -->
                             </td>
                             <td>{{ product.total }}</td>
                             <td><a href="" v-on:click.prevent="removeFromCart(sl)"><i class="fa fa-trash"></i></a></td>
