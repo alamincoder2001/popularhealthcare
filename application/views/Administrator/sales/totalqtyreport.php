@@ -123,65 +123,23 @@
 			<a href="" @click.prevent="print"><i class="fa fa-print"></i> Print</a>
 		</div>
 		<div class="col-md-12">
-			<div class="table-responsive" id="reportContent" v-if="searchType != 'employee'">
+			<div class="table-responsive" id="reportContent">
 				<table class="table table-responsive table-bordered">
-					<thead>
-						<tr>
-							<th>Sl</th>
-							<th>Product Code</th>
-							<th>Product Name</th>
-							<th>Total Sale Qty</th>
-							<th>Total Sale Amount</th>
-						</tr>
-					</thead>
-					<tbody>
-						<template v-for="sale in sales">
-							<tr>
-								<td colspan="5" style="text-align:center;background: #10285C;font-weight:bold;color:white;">{{ sale.category_name }}</td>
-							</tr>
-							<tr v-for="(product, index) in sale.products" :key="index">
-								<td>{{index + 1}}</td>
-								<td>{{ product.product_code }}</td>
-								<td>{{ product.product_name }}</td>
-								<td style="text-align:right;">{{ product.quantity }}</td>
-								<td style="text-align:right;">{{ product.price }}</td>
-							</tr>
-						</template>
-						<tr v-if="sales.length > 0" style="font-weight:bold;background:#454545;color:white;">
-							<td colspan="3" style="text-align:right;padding:5px;">Total:</td>
-							<td style="text-align:right;padding:5px;">{{ sales.reduce((acc, prod) => {return prod.products.reduce((ac, pre) => {return ac + +pre.quantity},0)},0) }}</td>
-							<td style="text-align:right;padding:5px;">{{ sales.reduce((acc, prod) => {return prod.products.reduce((ac, pre) => {return ac + +parseFloat(pre.price)},0)},0).toFixed(2) }}</td>
-						</tr>
-					</tbody>
+					<tr>
+						<th style="width: 35%;">Product Name</th>
+						<th v-for="m in monthYear">{{m}}</th>
+						<th>Total</th>
+					</tr>					
+					<template v-for="sale in sales" v-if="sales.length > 0">							
+					<tr >
+						<td style="text-align:left;">{{ sale.Product_Code }}-{{ sale.Product_Name }}</td>
+						<td v-for="m in monthYear">
+							{{checkMonthQuantiy(m, sale.saleQty)}}
+						</td>
+						<td>{{sale.saleQty.reduce((acc, pre) => {return acc + +pre.qty}, 0)}}</td>
+					</tr>
+					</template>
 				</table>
-			</div>
-			<div class="table-responsive" id="reportContent" v-else>
-				<template v-for="sale in sales">
-					<table class="table table-responsive table-bordered">
-						<tr>
-							<th colspan="5" style="text-align:center;background: #10285C;font-weight:bold;color:white;">{{ sale.Employee_Name }}</th>
-						</tr>
-						<tr>
-							<th>Sl</th>
-							<th>Product Code</th>
-							<th>Product Name</th>
-							<th>Total Sale Qty</th>
-							<th>Total Sale Amount</th>
-						</tr>
-						<tr v-for="(product, index) in sale.products" :key="index">
-							<td>{{index + 1}}</td>
-							<td>{{ product.Product_Code }}</td>
-							<td>{{ product.Product_Name }}</td>
-							<td style="text-align:right;">{{ product.product_qty }}</td>
-							<td style="text-align:right;">{{ product.product_price }}</td>
-						</tr>
-						<tr>
-							<th colspan="3" style="text-align:right;padding:5px;">Total:</th>
-							<th style="text-align:right;padding:5px;">{{ sale.products.reduce((acc, pre) => {return acc + +pre.product_qty},0) }}</th>
-							<th style="text-align:right;padding:5px;">{{sale.products.reduce((acc, pre) => {return acc + +pre.product_price}, 0).toFixed(2)}}</th>
-						</tr>
-					</table>
-				</template>
 			</div>
 		</div>
 	</div>
@@ -199,6 +157,7 @@
 		el: '#salesTotalquantityRecord',
 		data() {
 			return {
+				monthYear: [],
 				searchType: '',
 				dateFrom: moment().format('YYYY-MM-DD'),
 				dateTo: moment().format('YYYY-MM-DD'),
@@ -224,6 +183,14 @@
 			}
 		},
 		methods: {
+			checkMonthQuantiy(month, salemonth){
+				let check = salemonth.filter(s => s.monthname == month);
+				if (check.length > 0) {
+					return check[0]['qty'];
+				}else{
+					return 0;
+				}
+			},
 			onChangeSearchType() {
 				this.sales = [];
 				this.products = [];
@@ -277,42 +244,45 @@
 
 				axios.post('/get_totalquantity', filter)
 					.then(res => {
-						let sales = res.data;
-						if (this.searchType != 'employee') {
-							sales = _.chain(sales)
-								.groupBy('Category')
-								.map(sale => {
-									return {
-										category_name: sale[0].Category,
-										products: _.chain(sale)
-											.groupBy('Product_SlNo')
-											.map(product => {
-												return {
-													product_code: product[0].Product_Code,
-													product_name: product[0].Product_Name,
-													quantity: product[0].product_qty,
-													price: product[0].product_price
-												}
-											})
-											.value()
-									}
-								})
-								.value();
-								
-						} else {
-							sales = _.chain(sales)
-								.groupBy('Employee_SlNo')
-								.map(sale => {
-									return {
-										Employee_SlNo: sale[0].Employee_SlNo,
-										Employee_Name: sale[0].Employee_Name,
-										products: sale[0].salesQty,
-									}
-								})
-								.value();
+						this.sales = res.data.allProduct
+						this.monthYear = res.data.months
 
-						}
-						this.sales = this.selectedEmployee != null ? sales.filter(e => e.Employee_SlNo == this.selectedEmployee.Employee_SlNo) : sales
+						// let sales = res.data;
+						// if (this.searchType != 'employee') {
+						// 	sales = _.chain(sales)
+						// 		.groupBy('Category')
+						// 		.map(sale => {
+						// 			return {
+						// 				category_name: sale[0].Category,
+						// 				products: _.chain(sale)
+						// 					.groupBy('Product_SlNo')
+						// 					.map(product => {
+						// 						return {
+						// 							product_code: product[0].Product_Code,
+						// 							product_name: product[0].Product_Name,
+						// 							quantity: product[0].product_qty,
+						// 							price: product[0].product_price
+						// 						}
+						// 					})
+						// 					.value()
+						// 			}
+						// 		})
+						// 		.value();
+
+						// } else {
+						// 	sales = _.chain(sales)
+						// 		.groupBy('Employee_SlNo')
+						// 		.map(sale => {
+						// 			return {
+						// 				Employee_SlNo: sale[0].Employee_SlNo,
+						// 				Employee_Name: sale[0].Employee_Name,
+						// 				products: sale[0].salesQty,
+						// 			}
+						// 		})
+						// 		.value();
+
+						// }
+						// this.sales = this.selectedEmployee != null ? sales.filter(e => e.Employee_SlNo == this.selectedEmployee.Employee_SlNo) : sales
 					})
 			},
 
