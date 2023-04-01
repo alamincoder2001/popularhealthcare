@@ -136,7 +136,7 @@
 						<td v-for="m in monthYear">
 							{{checkMonthQuantiy(m, sale.saleQty)}}
 						</td>
-						<td>{{sale.saleQty.reduce((acc, pre) => {return acc + +pre.qty}, 0)}}</td>
+						<th>{{sale.saleQty.reduce((acc, pre) => {return acc + +pre.qty}, 0)}}</th>
 					</tr>
 					</template>
 				</table>
@@ -188,7 +188,7 @@
 				if (check.length > 0) {
 					return check[0]['qty'];
 				}else{
-					return 0;
+					return '';
 				}
 			},
 			onChangeSearchType() {
@@ -244,7 +244,11 @@
 
 				axios.post('/get_totalquantity', filter)
 					.then(res => {
-						this.sales = res.data.allProduct
+						if (this.searchType == 'product' && this.selectedProduct != null) {
+							this.sales = res.data.allProduct.filter(p => p.Product_SlNo == this.selectedProduct.Product_SlNo);
+						}else{
+							this.sales = res.data.allProduct
+						}
 						this.monthYear = res.data.months
 
 						// let sales = res.data;
@@ -328,7 +332,7 @@
 					</style>
 				`;
 				reportWindow.document.body.innerHTML += reportContent;
-
+				reportWindow.document.title = "Sales Quantity Report"			
 
 				reportWindow.focus();
 				await new Promise(resolve => setTimeout(resolve, 1000));
