@@ -123,7 +123,7 @@
 			<a href="" @click.prevent="print"><i class="fa fa-print"></i> Print</a>
 		</div>
 		<div class="col-md-12">
-			<div class="table-responsive" id="reportContent">
+			<div class="table-responsive" id="reportContent" v-if="searchType != 'employee'">
 				<table class="table table-responsive table-bordered">
 					<tr>
 						<th style="width: 35%;">Product Name</th>
@@ -131,6 +131,25 @@
 						<th>Total</th>
 					</tr>
 					<template v-for="sale in sales" v-if="sales.length > 0">
+						<tr>
+							<td style="text-align:left;">{{ sale.Product_Code }}-{{ sale.Product_Name }}</td>
+							<td v-for="m in monthYear">
+								{{checkMonthQuantiy(m, sale.saleQty)}}
+							</td>
+							<th>{{sale.saleQty.reduce((acc, pre) => {return acc + +pre.qty}, 0)}}</th>
+						</tr>
+					</template>
+				</table>
+			</div>
+
+			<div class="table-responsive" id="reportContent" v-else>
+				<table class="table table-responsive table-bordered" v-if="sales.length > 0" v-for="sale in sales">
+					<tr>
+						<th style="width: 35%;">Product Name</th>
+						<th v-for="m in monthYear">{{m}}</th>
+						<th>Total</th>
+					</tr>
+					<template v-for="sale in sales">
 						<tr>
 							<td style="text-align:left;">{{ sale.Product_Code }}-{{ sale.Product_Name }}</td>
 							<td v-for="m in monthYear">
@@ -245,8 +264,12 @@
 				axios.post('/get_totalquantity', filter)
 					.then(res => {
 						if (this.searchType == 'employee') {
-							console.log(res.data);
-							return;
+							if (this.selectedEmployee != null) {
+								this.sales = res.data.allEmployee.filter(em => em.Employee_SlNo == this.selectedEmployee.Employee_SlNo);
+							} else {
+								this.sales = res.data.allEmployee
+							}
+							console.log(this.sales);
 						} else {
 							if (this.searchType == 'product' && this.selectedProduct != null) {
 								this.sales = res.data.allProduct.filter(p => p.Product_SlNo == this.selectedProduct.Product_SlNo);
@@ -255,43 +278,6 @@
 							}
 						}
 						this.monthYear = res.data.months
-
-						// let sales = res.data;
-						// if (this.searchType != 'employee') {
-						// 	sales = _.chain(sales)
-						// 		.groupBy('Category')
-						// 		.map(sale => {
-						// 			return {
-						// 				category_name: sale[0].Category,
-						// 				products: _.chain(sale)
-						// 					.groupBy('Product_SlNo')
-						// 					.map(product => {
-						// 						return {
-						// 							product_code: product[0].Product_Code,
-						// 							product_name: product[0].Product_Name,
-						// 							quantity: product[0].product_qty,
-						// 							price: product[0].product_price
-						// 						}
-						// 					})
-						// 					.value()
-						// 			}
-						// 		})
-						// 		.value();
-
-						// } else {
-						// 	sales = _.chain(sales)
-						// 		.groupBy('Employee_SlNo')
-						// 		.map(sale => {
-						// 			return {
-						// 				Employee_SlNo: sale[0].Employee_SlNo,
-						// 				Employee_Name: sale[0].Employee_Name,
-						// 				products: sale[0].salesQty,
-						// 			}
-						// 		})
-						// 		.value();
-
-						// }
-						// this.sales = this.selectedEmployee != null ? sales.filter(e => e.Employee_SlNo == this.selectedEmployee.Employee_SlNo) : sales
 					})
 			},
 
