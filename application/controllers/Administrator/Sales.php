@@ -1465,13 +1465,13 @@ class Sales extends CI_Controller
         }
 
         if (isset($data->reportingBossId) && $data->reportingBossId != '') {
-            $allEmployee = $this->db->query("SELECT e.Employee_SlNo, e.Employee_Name
+            $allEmployee = $this->db->query("SELECT e.Employee_SlNo, e.Employee_Name, e.Category_ID as category_id
                 FROM tbl_employee e
                 WHERE e.Reportingboss_Id = '$data->reportingBossId'
                 AND e.Employee_brinchid = '$this->sbrunch'")->result();
         }
 
-        $allProduct = $this->db->query("SELECT p.Product_SlNo, p.Product_Code, p.Product_Name FROM tbl_product p WHERE p.status = 'a'")->result();
+        $allProduct = $this->db->query("SELECT p.Product_SlNo, p.Product_Code, p.Product_Name, p.ProductCategory_ID as category_id FROM tbl_product p WHERE p.status = 'a'")->result();
 
 
         if (isset($data->reportingBossId) && $data->reportingBossId != "") {

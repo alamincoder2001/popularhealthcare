@@ -145,17 +145,20 @@
 			<div class="table-responsive" id="reportContent" v-else>
 				<table class="table table-responsive table-bordered" v-if="sales.length > 0" v-for="sale in sales">
 					<tr>
+						<th :colspan="monthYear.length+2" style="text-align: center; background: rgb(16, 40, 92); font-weight: bold; color: white;">{{sale.Employee_Name}}</th>
+					</tr>
+					<tr>
 						<th style="width: 35%;">Product Name</th>
 						<th v-for="m in monthYear">{{m}}</th>
 						<th>Total</th>
 					</tr>
-					<template v-for="sale in sales">
-						<tr>
-							<td style="text-align:left;">{{ sale.Product_Code }}-{{ sale.Product_Name }}</td>
+					<template v-for="item in sale.allProduct">
+						<tr v-if="sale.category_id == item.category_id">
+							<td style="text-align:left;">{{ item.Product_Code }}-{{ item.Product_Name }}</td>
 							<td v-for="m in monthYear">
-								{{checkMonthQuantiy(m, sale.saleQty)}}
+								{{checkMonthQuantiy(m, item.saleQty)}}
 							</td>
-							<th>{{sale.saleQty.reduce((acc, pre) => {return acc + +pre.qty}, 0)}}</th>
+							<th>{{item.saleQty.reduce((acc, pre) => {return acc + +pre.qty}, 0)}}</th>
 						</tr>
 					</template>
 				</table>
