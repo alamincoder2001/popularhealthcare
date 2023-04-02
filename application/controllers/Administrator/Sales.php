@@ -1438,7 +1438,7 @@ class Sales extends CI_Controller
     public function getTotalQty()
     {
         $data = json_decode($this->input->raw_input_stream);
-
+        $res = [];
         $date1  = $data->dateFrom;
         $date2  = $data->dateTo;
         $months = [];
@@ -1453,6 +1453,7 @@ class Sales extends CI_Controller
 
             $time = strtotime('+1 month', $time);
         } while ($month != $last);
+        $res["months"] = $months;
 
         $clauses = "";
         if (isset($data->dateFrom) && $data->dateFrom != '') {
@@ -1474,39 +1475,46 @@ class Sales extends CI_Controller
 
 
         if (isset($data->reportingBossId) && $data->reportingBossId != "") {
-            foreach ($allProduct as $product) {
-                $product->saleQty = $this->db->query("SELECT
-            MONTH(sm.SaleMaster_SaleDate) as month,
-            concat(MONTHNAME(sm.SaleMaster_SaleDate),'-',YEAR(sm.SaleMaster_SaleDate)) as monthname,
-            (SUM(sd.SaleDetails_TotalQuantity)) AS qty,
-            (select sd.SaleDetails_TotalQuantity * sd.SaleDetails_Rate) as value
-                FROM tbl_saledetails sd
-                LEFT JOIN tbl_salesmaster sm ON sm.SaleMaster_SlNo = sd.SaleMaster_IDNo
-                LEFT JOIN tbl_employee em ON em.Employee_SlNo = sm.employee_id
-                WHERE sd.Status = 'a' 
-                AND sd.Product_IDNo = ?
-                AND sd.SaleDetails_BranchId = ?
-                $clauses
-                GROUP by MONTH(sm.SaleMaster_SaleDate)", [$product->Product_SlNo, $this->sbrunch])->result();
+            foreach($allEmployee as $employee){
+                foreach ($allProduct as $product) {
+                    $product->saleQty = $this->db->query("SELECT
+                                        MONTH(sm.SaleMaster_SaleDate) as month,
+                                        concat(MONTHNAME(sm.SaleMaster_SaleDate),'-',YEAR(sm.SaleMaster_SaleDate)) as monthname,
+                                        (SUM(sd.SaleDetails_TotalQuantity)) AS qty,
+                                        (select sd.SaleDetails_TotalQuantity * sd.SaleDetails_Rate) as value
+                                            FROM tbl_saledetails sd
+                                            LEFT JOIN tbl_salesmaster sm ON sm.SaleMaster_SlNo = sd.SaleMaster_IDNo
+                                            LEFT JOIN tbl_employee em ON em.Employee_SlNo = sm.employee_id
+                                            WHERE sd.Status = 'a' 
+                                            AND sd.Product_IDNo = ?
+                                            AND sd.SaleDetails_BranchId = ?
+                                            AND sm.employee_id = '$employee->Employee_SlNo'
+                                            $clauses
+                                            GROUP by MONTH(sm.SaleMaster_SaleDate)", [$product->Product_SlNo, $this->sbrunch])->result();
+                }
+                $employee->allProduct = $allProduct;
             }
+
+            $res['allEmployee'] = $allEmployee;
         } else {
             foreach ($allProduct as $product) {
                 $product->saleQty = $this->db->query("SELECT
-            MONTH(sm.SaleMaster_SaleDate) as month,
-            concat(MONTHNAME(sm.SaleMaster_SaleDate),'-',YEAR(sm.SaleMaster_SaleDate)) as monthname,
-            (SUM(sd.SaleDetails_TotalQuantity)) AS qty,
-            (select sd.SaleDetails_TotalQuantity * sd.SaleDetails_Rate) as value
-                FROM tbl_saledetails sd
-                LEFT JOIN tbl_salesmaster sm ON sm.SaleMaster_SlNo = sd.SaleMaster_IDNo
-                LEFT JOIN tbl_employee em ON em.Employee_SlNo = sm.employee_id
-                WHERE sd.Status = 'a' 
-                AND sd.Product_IDNo = ?
-                AND sd.SaleDetails_BranchId = ?
-                $clauses
-                GROUP by MONTH(sm.SaleMaster_SaleDate)", [$product->Product_SlNo, $this->sbrunch])->result();
+                                    MONTH(sm.SaleMaster_SaleDate) as month,
+                                    concat(MONTHNAME(sm.SaleMaster_SaleDate),'-',YEAR(sm.SaleMaster_SaleDate)) as monthname,
+                                    (SUM(sd.SaleDetails_TotalQuantity)) AS qty,
+                                    (select sd.SaleDetails_TotalQuantity * sd.SaleDetails_Rate) as value
+                                        FROM tbl_saledetails sd
+                                        LEFT JOIN tbl_salesmaster sm ON sm.SaleMaster_SlNo = sd.SaleMaster_IDNo
+                                        LEFT JOIN tbl_employee em ON em.Employee_SlNo = sm.employee_id
+                                        WHERE sd.Status = 'a' 
+                                        AND sd.Product_IDNo = ?
+                                        AND sd.SaleDetails_BranchId = ?
+                                        $clauses
+                                        GROUP by MONTH(sm.SaleMaster_SaleDate)", [$product->Product_SlNo, $this->sbrunch])->result();
             }
+            $res['allProduct'] = $allProduct;
         }
-        echo json_encode(['allProduct' => $allProduct, 'months' => $months]);
+        echo json_encode($res);
     }
 
 
