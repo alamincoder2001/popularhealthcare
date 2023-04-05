@@ -1459,44 +1459,83 @@ class Sales extends CI_Controller
         if (isset($data->dateFrom) && $data->dateFrom != '') {
             $clauses .= " AND sm.SaleMaster_SaleDate BETWEEN '$data->dateFrom' AND '$data->dateTo'";
         }
-        
+
         if (isset($data->customerId) && $data->customerId != '') {
             $clauses .= " AND sm.SalseCustomer_IDNo = '$data->customerId'";
         }
 
         if (isset($data->reportingBossId) && $data->reportingBossId != '') {
-            $allEmployee = $this->db->query("SELECT e.Employee_SlNo, e.Employee_Name, e.Category_ID as category_id
-                FROM tbl_employee e
-                WHERE e.Reportingboss_Id = '$data->reportingBossId'
-                AND e.Employee_brinchid = '$this->sbrunch'")->result();
+            $allEmployee = $this->db->query("SELECT
+                    e.Employee_SlNo,
+                    e.Employee_Name,
+                    e.Category_ID as category_id
+                    FROM tbl_employee e
+                    WHERE e.Reportingboss_Id = '$data->reportingBossId'
+                    AND e.Employee_brinchid = '$this->sbrunch'
+                ")->result();
+            foreach ($allEmployee as $key => $emp) {
+                $emp->products = $this->db->query("SELECT
+                        p.Product_SlNo,
+                        p.Product_Code,
+                        p.Product_Name,
+                        p.ProductCategory_ID as category_id
+                        FROM tbl_product p
+                        WHERE p.status = 'a'
+                        and p.ProductCategory_ID = ?
+                    ", $emp->category_id)->result();
+            }
+        } else {
+            $allEmployee = $this->db->query("SELECT
+                    e.Employee_SlNo,
+                    e.Employee_Name,
+                    e.Category_ID as category_id
+                    FROM tbl_employee e
+                    WHERE e.Employee_brinchid = '$this->sbrunch'
+                ")->result();
+            foreach ($allEmployee as $key => $emp) {
+                $emp->products = $this->db->query("SELECT
+                        p.Product_SlNo,
+                        p.Product_Code,
+                        p.Product_Name,
+                        p.ProductCategory_ID as category_id
+                        FROM tbl_product p
+                        WHERE p.status = 'a'
+                        and p.ProductCategory_ID = ?
+                    ", $emp->category_id)->result();
+            }
         }
 
-        $allProduct = $this->db->query("SELECT p.Product_SlNo, p.Product_Code, p.Product_Name, p.ProductCategory_ID as category_id FROM tbl_product p WHERE p.status = 'a'")->result();
 
-
-        if (isset($data->reportingBossId) && $data->reportingBossId != "") {
-            foreach($allEmployee as $employee){
-                foreach ($allProduct as $product) {
+        if (isset($data->reportingBossId) && $data->reportingBossId != "" || isset($data->employeeId) && $data->employeeId != "") {
+            foreach ($allEmployee as $employee) {
+                foreach ($employee->products as $product) {
                     $product->saleQty = $this->db->query("SELECT
-                                        MONTH(sm.SaleMaster_SaleDate) as month,
-                                        concat(MONTHNAME(sm.SaleMaster_SaleDate),'-',YEAR(sm.SaleMaster_SaleDate)) as monthname,
-                                        (SUM(sd.SaleDetails_TotalQuantity)) AS qty,
-                                        (select sd.SaleDetails_TotalQuantity * sd.SaleDetails_Rate) as value
-                                            FROM tbl_saledetails sd
-                                            LEFT JOIN tbl_salesmaster sm ON sm.SaleMaster_SlNo = sd.SaleMaster_IDNo
-                                            LEFT JOIN tbl_employee em ON em.Employee_SlNo = sm.employee_id
-                                            WHERE sd.Status = 'a' 
-                                            AND sd.Product_IDNo = ?
-                                            AND sd.SaleDetails_BranchId = ?
-                                            AND sm.employee_id = '$employee->Employee_SlNo'
-                                            $clauses
-                                            GROUP by MONTH(sm.SaleMaster_SaleDate)", [$product->Product_SlNo, $this->sbrunch])->result();
+                                            MONTH(sm.SaleMaster_SaleDate) as month,
+                                            concat(MONTHNAME(sm.SaleMaster_SaleDate),'-',YEAR(sm.SaleMaster_SaleDate)) as monthname,
+                                            (SUM(sd.SaleDetails_TotalQuantity)) AS qty,
+                                            (select sd.SaleDetails_TotalQuantity * sd.SaleDetails_Rate) as value
+                                                FROM tbl_saledetails sd
+                                                LEFT JOIN tbl_salesmaster sm ON sm.SaleMaster_SlNo = sd.SaleMaster_IDNo
+                                                LEFT JOIN tbl_employee em ON em.Employee_SlNo = sm.employee_id
+                                                WHERE sd.Status = 'a' 
+                                                AND sd.Product_IDNo = ?
+                                                AND sd.SaleDetails_BranchId = ?
+                                                AND sm.employee_id = '$employee->Employee_SlNo'
+                                                $clauses
+                                                GROUP by MONTH(sm.SaleMaster_SaleDate)
+                                        ", [$product->Product_SlNo, $this->sbrunch])->result();
                 }
-                $employee->allProduct = $allProduct;
             }
-
             $res['allEmployee'] = $allEmployee;
         } else {
+            $allProduct = $this->db->query("SELECT
+                    p.Product_SlNo,
+                    p.Product_Code,
+                    p.Product_Name,
+                    p.ProductCategory_ID as category_id
+                    FROM tbl_product p
+                    WHERE p.status = 'a'")->result();
+
             foreach ($allProduct as $product) {
                 $product->saleQty = $this->db->query("SELECT
                                     MONTH(sm.SaleMaster_SaleDate) as month,
@@ -1512,6 +1551,7 @@ class Sales extends CI_Controller
                                         $clauses
                                         GROUP by MONTH(sm.SaleMaster_SaleDate)", [$product->Product_SlNo, $this->sbrunch])->result();
             }
+
             $res['allProduct'] = $allProduct;
         }
         echo json_encode($res);

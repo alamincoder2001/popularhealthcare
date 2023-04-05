@@ -701,7 +701,7 @@ class Model_Table extends CI_Model
             from tbl_customer c
             where c.status = 'a'
             " . ($branchId == '' ? "" : " and c.Customer_brunchid = '$branchId' ") . "            
-             $clauses
+            $clauses
         ")->result();
 
         return $dueResult;

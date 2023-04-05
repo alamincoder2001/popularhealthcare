@@ -123,44 +123,55 @@
 			<a href="" @click.prevent="print"><i class="fa fa-print"></i> Print</a>
 		</div>
 		<div class="col-md-12">
-			<div class="table-responsive" id="reportContent" v-if="searchType != 'employee'">
+			<div class="table-responsive" id="reportContent" v-if="searchType == 'employee'">
+				<table class="table table-responsive table-bordered" v-if="sales.length > 0" v-for="sale in sales">
+					<tr>
+						<th :colspan="monthYear.length+3" style="text-align: center; background: rgb(16, 40, 92); font-weight: bold; color: white;">{{sale.Employee_Name}}</th>
+					</tr>
+					<tr>
+						<th style="width: 35%;">Product Name</th>
+						<th v-for="m in monthYear">{{m}}</th>
+						<th colspan="2">Total</th>
+					</tr>
+					<template v-for="item in sale.products">
+						<tr>
+							<td style="text-align:left;">{{ item.Product_Code }}-{{ item.Product_Name }}</td>
+							<td v-for="m in monthYear">
+								{{checkMonthQuantiy(m, item.saleQty)}}
+							</td>
+							<th>{{item.saleQty.reduce((acc, pre) => {return acc + +pre.qty}, 0)}}</th>
+							<th>{{item.saleQty.reduce((acc, pre) => {return acc + +pre.value}, 0).toFixed(2)}}</th>
+						</tr>
+					</template>
+					<tr>
+						<th :colspan="monthYear.length+1">Total</th>
+						<th>{{sale.products.reduce((acc, prev) => {return acc + +prev.saleQty.reduce((ac, pre) => {return ac+ +pre.qty}, 0)}, 0)}}</th>
+						<th>{{sale.products.reduce((acc, prev) => {return acc + +prev.saleQty.reduce((ac, pre) => {return ac+ +pre.value}, 0)}, 0).toFixed(2)}}</th>
+					</tr>
+				</table>
+			</div>
+			<div class="table-responsive" id="reportContent" v-else>
 				<table class="table table-responsive table-bordered">
 					<tr>
 						<th style="width: 35%;">Product Name</th>
 						<th v-for="m in monthYear">{{m}}</th>
-						<th>Total</th>
+						<th colspan="2">Total</th>
 					</tr>
-					<template v-for="sale in sales" v-if="sales.length > 0">
+					<template v-for="sale in sales">
 						<tr>
 							<td style="text-align:left;">{{ sale.Product_Code }}-{{ sale.Product_Name }}</td>
 							<td v-for="m in monthYear">
 								{{checkMonthQuantiy(m, sale.saleQty)}}
 							</td>
 							<th>{{sale.saleQty.reduce((acc, pre) => {return acc + +pre.qty}, 0)}}</th>
+							<th>{{sale.saleQty.reduce((acc, pre) => {return acc + +pre.value}, 0).toFixed(2)}}</th>
 						</tr>
 					</template>
-				</table>
-			</div>
-
-			<div class="table-responsive" id="reportContent" v-else>
-				<table class="table table-responsive table-bordered" v-if="sales.length > 0" v-for="sale in sales">
 					<tr>
-						<th :colspan="monthYear.length+2" style="text-align: center; background: rgb(16, 40, 92); font-weight: bold; color: white;">{{sale.Employee_Name}}</th>
+						<th :colspan="monthYear.length+1">Total</th>
+						<th>{{sales.reduce((acc, prev) => {return acc + +prev.saleQty.reduce((ac, pre) => {return ac+ +pre.qty}, 0)}, 0)}}</th>
+						<th>{{sales.reduce((acc, prev) => {return acc + +prev.saleQty.reduce((ac, pre) => {return ac+ +pre.value}, 0)}, 0).toFixed(2)}}</th>
 					</tr>
-					<tr>
-						<th style="width: 35%;">Product Name</th>
-						<th v-for="m in monthYear">{{m}}</th>
-						<th>Total</th>
-					</tr>
-					<template v-for="item in sale.allProduct">
-						<tr v-if="sale.category_id == item.category_id">
-							<td style="text-align:left;">{{ item.Product_Code }}-{{ item.Product_Name }}</td>
-							<td v-for="m in monthYear">
-								{{checkMonthQuantiy(m, item.saleQty)}}
-							</td>
-							<th>{{item.saleQty.reduce((acc, pre) => {return acc + +pre.qty}, 0)}}</th>
-						</tr>
-					</template>
 				</table>
 			</div>
 		</div>
@@ -221,6 +232,7 @@
 				this.selectedCustomer = null
 				this.selectedReportingboss = null
 				this.selectedProduct = null
+				this.selectedEmployee = null
 				if (this.searchType == 'product') {
 					this.getProducts();
 				} else if (this.searchType == 'customer') {
@@ -272,7 +284,6 @@
 							} else {
 								this.sales = res.data.allEmployee
 							}
-							console.log(this.sales);
 						} else {
 							if (this.searchType == 'product' && this.selectedProduct != null) {
 								this.sales = res.data.allProduct.filter(p => p.Product_SlNo == this.selectedProduct.Product_SlNo);
@@ -291,6 +302,18 @@
 						<div class="row">
 							<div class="col-xs-12 text-center">
 								<h3>Sales Total Quantity Record</h3>
+							</div>
+							<div class="col-xs-6">
+								<h4 style="margin:0;text-align:left;">
+									${this.selectedReportingboss != null ? 'ReportingBoss: '+this.selectedReportingboss.Employee_Name:""}
+									${this.selectedCustomer != null ? 'Customer Name: '+this.selectedCustomer.Customer_Name:""}
+								</h4>
+							</div>
+							<div class="col-xs-6">
+								<h4 style="margin:0;text-align:right;">
+									${this.selectedReportingboss != null ? 'Contact No: '+this.selectedReportingboss.Employee_ContactNo:""}
+									${this.selectedCustomer != null ? 'Contact No: '+this.selectedCustomer.Customer_Mobile:""}
+								</h4>
 							</div>
 						</div>
 						<div class="row">

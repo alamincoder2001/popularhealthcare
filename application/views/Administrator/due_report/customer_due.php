@@ -201,24 +201,28 @@
 					console.log(this.selectedCustomer);
 					return;
 				}
-				if(this.searchType == 'employee' && this.selectedEmployee == null){
-					alert('Select Employee');
-					return;
-				}
+				// if(this.searchType == 'employee' && this.selectedEmployee == null){
+				// 	alert('Select Employee');
+				// 	return;
+				// }
 
 				let data = {					
 					customerId: this.selectedCustomer == null ? null : this.selectedCustomer.Customer_SlNo,
 					districtId: this.selectedArea == null ? null : this.selectedArea.District_SlNo,
 				}
 				
-				if (this.searchType == 'employee') {
-					if (this.selectedEmployee.Department_ID == 1) {
-						data.Derma_Id = this.selectedEmployee.Employee_SlNo
-					}else if(this.selectedEmployee.Department_ID == 2){
-						data.Healthcare_Id = this.selectedEmployee.Employee_SlNo
-					}else{
-						data.Nutrition_Id = this.selectedEmployee.Employee_SlNo
+				if(this.selectedReportingboss == null){
+					if (this.searchType == 'employee') {
+						if (this.selectedEmployee.Department_ID == 1) {
+							data.Derma_Id = this.selectedEmployee.Employee_SlNo
+						}else if(this.selectedEmployee.Department_ID == 2){
+							data.Healthcare_Id = this.selectedEmployee.Employee_SlNo
+						}else{
+							data.Nutrition_Id = this.selectedEmployee.Employee_SlNo
+						}
 					}
+				}else{
+					data.Reportingboss_Id = this.selectedReportingboss.Employee_SlNo
 				}
 
 				axios.post('/get_customer_due', data).then(res => {

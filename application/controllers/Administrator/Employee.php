@@ -505,7 +505,8 @@ class Employee extends CI_Controller
     {
         $query = $this->db->query("SELECT
                         re.*,
-                        e.Employee_Name
+                        e.Employee_Name,
+                        e.Employee_ContactNo
                     FROM tbl_reportingboss re
                     LEFT JOIN tbl_employee e ON e.Employee_SlNo = re.Reportingboss_Id
                     WHERE re.branch_id = ?
