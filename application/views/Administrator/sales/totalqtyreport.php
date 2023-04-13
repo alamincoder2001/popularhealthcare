@@ -78,9 +78,8 @@
 					<label>Search Type</label>
 					<select class="form-control" v-model="searchType" @change="onChangeSearchType">
 						<option value="">All</option>
-						<option value="customer">By Customer</option>
 						<option value="employee">By Employee</option>
-						<option value="product">By Product</option>
+						<option value="customer">By Customer</option>
 					</select>
 				</div>
 
@@ -96,11 +95,6 @@
 				<div class="form-group" :style="{display: employees.length > 0 ? '':'none'}">
 					<label>Employee</label>
 					<v-select v-bind:options="employees" v-model="selectedEmployee" label="Employee_Name"></v-select>
-				</div>
-
-				<div class="form-group" style="display:none;" v-bind:style="{display: searchType == 'product' && products.length > 0 ? '' : 'none'}">
-					<label>Product</label>
-					<v-select v-bind:options="products" v-model="selectedProduct" label="display_text" @input="sales = []"></v-select>
 				</div>
 
 				<div class="form-group">
@@ -176,10 +170,8 @@
 				selectedReportingboss: null,
 				employees1: [],
 				selectedEmployee: null,
-				products: [],
-				selectedProduct: null,
 				sales: [],
-				searchTypesForRecord: ['', 'customer', 'employee', 'product'],
+				searchTypesForRecord: ['', 'customer', 'employee'],
 			}
 		},
 		computed: {
@@ -201,27 +193,17 @@
 			},
 			onChangeSearchType() {
 				this.sales = [];
-				this.products = [];
 				this.employees1 = [];
 				this.reportingboss = [];
 				this.selectedCustomer = null
 				this.selectedReportingboss = null
-				this.selectedProduct = null
 				this.selectedEmployee = null
-				if (this.searchType == 'product') {
-					this.getProducts();
-				} else if (this.searchType == 'customer') {
+				if (this.searchType == 'customer') {
 					this.getCustomers();
 				} else if (this.searchType == 'employee') {
 					this.getReportingBoss();
 					this.getEmployee();
 				}
-			},
-
-			getProducts() {
-				axios.get('/get_products').then(res => {
-					this.products = res.data;
-				})
 			},
 			getCustomers() {
 				axios.get('/get_customers').then(res => {
@@ -243,7 +225,6 @@
 
 			getsalesRecord() {
 				let filter = {
-					productId: this.selectedProduct == null || this.selectedProduct.Product_SlNo == '' ? '' : this.selectedProduct.Product_SlNo,
 					customerId: this.selectedCustomer == null || this.selectedCustomer.Customer_SlNo == '' ? '' : this.selectedCustomer.Customer_SlNo,
 					reportingBossId: this.selectedReportingboss == null ? '' : this.selectedReportingboss.Reportingboss_Id,
 					employeeId: this.selectedEmployee == null ? '' : this.selectedEmployee.Employee_SlNo,
@@ -261,12 +242,8 @@
 							} else {
 								this.sales = res.data.allEmployee
 							}
-						} else {
-							if (this.searchType == 'product' && this.selectedProduct != null) {
-								this.sales = res.data.allProduct.filter(p => p.Product_SlNo == this.selectedProduct.Product_SlNo);
-							} else {
-								this.sales = res.data.allProduct
-							}
+						}else{
+							this.sales = res.data.allEmployee
 						}
 					})
 			},

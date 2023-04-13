@@ -1527,6 +1527,35 @@ class Sales extends CI_Controller
                                 WHERE p.status = 'a'
                                 $categoryclauses")->result();
             }
+        } else {
+            foreach ($allEmployee as $key => $employee) {
+                $employee->products = $this->db->query("SELECT
+                                    p.Product_SlNo,
+                                    p.Product_Code,
+                                    p.Product_Name,
+                                    p.ProductCategory_ID,
+                                    (SELECT SUM(sd.SaleDetails_TotalQuantity) 
+                                        FROM tbl_saledetails sd
+                                        LEFT JOIN tbl_salesmaster sm ON sm.SaleMaster_SlNo = sd.SaleMaster_IDNo
+                                        WHERE sd.Status = 'a'
+                                        AND sd.Product_IDNo = p.Product_SlNo
+                                        AND sd.SaleDetails_BranchId = '$this->sbrunch'
+                                        AND sm.employee_id = '$employee->Employee_SlNo'
+                                        $clauses
+                                    ) AS qty,
+                                    (SELECT SUM(sd.SaleDetails_Rate) 
+                                        FROM tbl_saledetails sd
+                                        LEFT JOIN tbl_salesmaster sm ON sm.SaleMaster_SlNo = sd.SaleMaster_IDNo
+                                        WHERE sd.Status = 'a'
+                                        AND sd.Product_IDNo = p.Product_SlNo
+                                        AND sm.employee_id = '$employee->Employee_SlNo'
+                                        AND sd.SaleDetails_BranchId = '$this->sbrunch'
+                                        $clauses
+                                    ) AS sale_rate
+                                FROM tbl_product p
+                                WHERE p.status = 'a'
+                                $categoryclauses")->result();
+            }
         }
         echo json_encode(['allEmployee' => $allEmployee, 'allProducts' => $allProducts]);
     }
