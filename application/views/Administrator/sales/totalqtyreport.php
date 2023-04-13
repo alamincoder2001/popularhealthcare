@@ -118,59 +118,35 @@
 		</div>
 	</div>
 
-	<div class="row" style="margin-top:15px;display:none;" v-bind:style="{display: sales.length > 0 ? '' : 'none'}">
+	<div class="row" style="margin-top:15px;" v-if="sales.length > 0">
 		<div class="col-md-12" style="margin-bottom: 10px;">
 			<a href="" @click.prevent="print"><i class="fa fa-print"></i> Print</a>
 		</div>
 		<div class="col-md-12">
-			<div class="table-responsive" id="reportContent" v-if="searchType == 'employee'">
-				<table class="table table-responsive table-bordered" v-if="sales.length > 0" v-for="sale in sales">
-					<tr>
-						<th :colspan="monthYear.length+3" style="text-align: center; background: rgb(16, 40, 92); font-weight: bold; color: white;">{{sale.Employee_Name}}</th>
-					</tr>
-					<tr>
-						<th style="width: 35%;">Product Name</th>
-						<th v-for="m in monthYear">{{m}}</th>
-						<th colspan="2">Total</th>
-					</tr>
-					<template v-for="item in sale.products">
-						<tr>
-							<td style="text-align:left;">{{ item.Product_Code }}-{{ item.Product_Name }}</td>
-							<td v-for="m in monthYear">
-								{{checkMonthQuantiy(m, item.saleQty)}}
-							</td>
-							<th>{{item.saleQty.reduce((acc, pre) => {return acc + +pre.qty}, 0)}}</th>
-							<th>{{item.saleQty.reduce((acc, pre) => {return acc + +pre.value}, 0).toFixed(2)}}</th>
-						</tr>
-					</template>
-					<tr>
-						<th :colspan="monthYear.length+1">Total</th>
-						<th>{{sale.products.reduce((acc, prev) => {return acc + +prev.saleQty.reduce((ac, pre) => {return ac+ +pre.qty}, 0)}, 0)}}</th>
-						<th>{{sale.products.reduce((acc, prev) => {return acc + +prev.saleQty.reduce((ac, pre) => {return ac+ +pre.value}, 0)}, 0).toFixed(2)}}</th>
-					</tr>
-				</table>
-			</div>
-			<div class="table-responsive" id="reportContent" v-else>
+			<div class="table-responsive" id="reportContent">
 				<table class="table table-responsive table-bordered">
 					<tr>
-						<th style="width: 35%;">Product Name</th>
-						<th v-for="m in monthYear">{{m}}</th>
-						<th colspan="2">Total</th>
+						<th style="width: 18%;"></th>
+						<template v-for="product in headerProducts">
+							<th style="writing-mode: tb-rl; text-align: center;font-size:10px;width:0;">{{product.Product_Name}}</th>
+						</template>
+						<th style="writing-mode: tb-rl; text-align: center;font-size:8px;width:0;">Total Value</th>
 					</tr>
-					<template v-for="sale in sales">
-						<tr>
-							<td style="text-align:left;">{{ sale.Product_Code }}-{{ sale.Product_Name }}</td>
-							<td v-for="m in monthYear">
-								{{checkMonthQuantiy(m, sale.saleQty)}}
-							</td>
-							<th>{{sale.saleQty.reduce((acc, pre) => {return acc + +pre.qty}, 0)}}</th>
-							<th>{{sale.saleQty.reduce((acc, pre) => {return acc + +pre.value}, 0).toFixed(2)}}</th>
-						</tr>
-					</template>
-					<tr>
-						<th :colspan="monthYear.length+1">Total</th>
-						<th>{{sales.reduce((acc, prev) => {return acc + +prev.saleQty.reduce((ac, pre) => {return ac+ +pre.qty}, 0)}, 0)}}</th>
-						<th>{{sales.reduce((acc, prev) => {return acc + +prev.saleQty.reduce((ac, pre) => {return ac+ +pre.value}, 0)}, 0).toFixed(2)}}</th>
+					<tr v-for="sale in sales">
+						<th style="text-align: left;font-size:10px;">{{sale.Employee_Name}}</th>
+						<template v-for='item in sale.products'>
+							<td style="font-size:10px;">{{item.qty}}</td>
+						</template>
+						<td style="font-size:10px;">{{sale.products.reduce((acc, pre) => {return acc + +pre.sale_rate}, 0).toFixed(2)}}</td>
+					</tr>
+					<tr style="background: #76767691;" v-if="selectedEmployee == null">
+						<th style="text-align: right;font-size:10px;">Total:</th>
+						<template v-for='product in headerProducts'>
+							<th style="font-size:10px;">{{product.qty}}</th>
+						</template>
+						<th style="font-size:10px;">
+							{{sales.reduce((acc, prod) => {return acc + + prod.products.reduce((ac, pre)=>{return ac + +pre.sale_rate}, 0)}, 0).toFixed(2)}}
+						</th>
 					</tr>
 				</table>
 			</div>
@@ -190,7 +166,7 @@
 		el: '#salesTotalquantityRecord',
 		data() {
 			return {
-				monthYear: [],
+				headerProducts: [],
 				searchType: '',
 				dateFrom: moment().format('YYYY-MM-DD'),
 				dateTo: moment().format('YYYY-MM-DD'),
@@ -216,8 +192,7 @@
 			}
 		},
 		methods: {
-			checkMonthQuantiy(month, salemonth) {
-				let check = salemonth.filter(s => s.monthname == month);
+			checkproduct(qty, sl) {
 				if (check.length > 0) {
 					return check[0]['qty'];
 				} else {
@@ -272,12 +247,14 @@
 					customerId: this.selectedCustomer == null || this.selectedCustomer.Customer_SlNo == '' ? '' : this.selectedCustomer.Customer_SlNo,
 					reportingBossId: this.selectedReportingboss == null ? '' : this.selectedReportingboss.Reportingboss_Id,
 					employeeId: this.selectedEmployee == null ? '' : this.selectedEmployee.Employee_SlNo,
+					categoryId: this.selectedReportingboss != null ? this.selectedReportingboss.category_id : '',
 					dateFrom: this.dateFrom,
-					dateTo: this.dateTo
+					dateTo: this.dateTo,
 				}
 
 				axios.post('/get_totalquantity', filter)
 					.then(res => {
+						this.headerProducts = res.data.allProducts;
 						if (this.searchType == 'employee') {
 							if (this.selectedEmployee != null) {
 								this.sales = res.data.allEmployee.filter(em => em.Employee_SlNo == this.selectedEmployee.Employee_SlNo);
@@ -291,7 +268,6 @@
 								this.sales = res.data.allProduct
 							}
 						}
-						this.monthYear = res.data.months
 					})
 			},
 
