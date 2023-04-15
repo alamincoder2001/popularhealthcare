@@ -656,6 +656,23 @@
 				if (this.selectedProduct.Product_SlNo == '') {
 					return
 				}
+				if (this.selectedEmployee.Employee_SlNo == '' || this.selectedEmployee == null) {
+					alert("Select Employee first")
+					this.selectedProduct = {
+						Product_SlNo: '',
+						display_text: 'Select Product',
+						Product_Name: '',
+						Unit_Name: '',
+						quantity: 0,
+						Product_Purchase_Rate: '',
+						Product_SellingPrice: 0.00,
+						discount: 0.00,
+						vat: 0.00,
+						total: 0.00
+					}
+					document.querySelector("#employee [type='search']").focus()
+					return
+				}
 
 				this.batch = {
 					batch_no: '',
