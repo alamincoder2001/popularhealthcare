@@ -416,7 +416,6 @@ $route['incomeSearch'] = 'Administrator/Account/income_search';
 $route['incomePrint'] = 'Administrator/Reports/income_print';
 
 $route['cashView'] = 'Administrator/Account/cash_view';
-$route['cashView'] = 'Administrator/Account/cash_view';
 $route['cashSearch'] = 'Administrator/Account/cash_view';
 $route['cash_ledger'] = 'Administrator/Account/cashLedger';
 $route['get_cash_ledger'] = 'Administrator/Account/getCashLedger';
@@ -582,6 +581,10 @@ $route['get_delivery_order'] = 'Administrator/Order/getDeliveryOrder';
 // Get Batch 
 $route['get_batchs'] = 'Administrator/Sales/getBatch';
 $route['check_batch'] = 'Administrator/Sales/checkBatch';
+
+// Export excel
+$route['export/salesqty'] = 'Administrator/Sales/exportData';
+
 
 // get report
 $route['get_totalquantity'] = 'Administrator/Sales/getTotalQty';

@@ -2341,4 +2341,26 @@ class Sales extends CI_Controller
 
         echo json_encode($res);
     }
+
+    public function exportData()
+    {
+
+        // Set headers for Excel file download
+        header("Content-Type: application/vnd.ms-excel");
+        header("Content-Disposition: attachment; filename=export_data.xls");
+
+        // Define the Excel content
+        $output = '';
+        $output .= '<table border="1" cellspacing="0" cellpadding="5">';
+        $output .= '<tr style="background:gray;color:white;"><th>Column 1</th><th>Column 2</th></tr>';
+
+        $output .= '<tr>';
+        $output .= '<td> Hello </td>';
+        $output .= '<td> Amr Name </td>';
+        $output .= '</tr>';
+
+        $output .= '</table>';
+
+        echo $output;
+    }
 }

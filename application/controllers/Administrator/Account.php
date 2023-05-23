@@ -68,12 +68,12 @@ class Account extends CI_Controller {
         }
         else{
             $data = array(
-                "Acc_Code"          =>$this->input->post('account_id', TRUE),
-                "Acc_Name"          =>$this->input->post('accountName', TRUE),
-                "Acc_Type"          =>$this->input->post('accounttype', TRUE),
-                "Acc_Description"          =>$this->input->post('Description', TRUE),
-                "AddBy"                  =>$this->session->userdata("FullName"),
-                "AddTime"                =>date("Y-m-d H:i:s")
+                "Acc_Code"        => $this->input->post('account_id', TRUE),
+                "Acc_Name"        => $this->input->post('accountName', TRUE),
+                "Acc_Type"        => $this->input->post('accounttype', TRUE),
+                "Acc_Description" => $this->input->post('Description', TRUE),
+                "AddBy"           => $this->session->userdata("FullName"),
+                "AddTime"         => date("Y-m-d H:i:s")
                 );
             $this->mt->save_data('tbl_account',$data);
             $this->load->view('Administrator/ajax/transaction/fancyboxResultOffice');
@@ -1273,9 +1273,9 @@ class Account extends CI_Controller {
     public function cashView(){
         $data['title'] = "Cash View";
 
-        $data['transaction_summary'] = $this->mt->getTransactionSummary();
+        $data['transaction_summary'] = $this->mt->getTransactionSummary(null, $this->session->userdata("BRANCHid"));
 
-        $data['bank_account_summary'] = $this->mt->getBankTransactionSummary();
+        $data['bank_account_summary'] = $this->mt->getBankTransactionSummary(null, null, $this->session->userdata("BRANCHid"));
 
         $data['content'] = $this->load->view('Administrator/account/cash_view', $data, true);
         $this->load->view('Administrator/index', $data);
