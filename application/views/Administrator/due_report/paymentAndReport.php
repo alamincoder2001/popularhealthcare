@@ -11,7 +11,7 @@ $type = $CPROW->CPayment_TransactionType;
 $Custid = $CPROW->CPayment_customerID;
 
 $prevdueAmont = $CPROW->CPayment_previous_due;
-$totalDue = $type == 'CR' ? $prevdueAmont - $CPROW->CPayment_amount : $prevdueAmont + $CPROW->CPayment_amount;
+$totalDue = $type == 'CR' ? $prevdueAmont - ($CPROW->CPayment_amount+$CPROW->CPayment_adjustment) : $prevdueAmont + $CPROW->CPayment_amount;
 
 ?>
 
@@ -58,13 +58,13 @@ $totalDue = $type == 'CR' ? $prevdueAmont - $CPROW->CPayment_amount : $prevdueAm
                         <tr>
                         <td style="text-align: center;">01</td>
                         <td><?php echo $CPROW->CPayment_notes; ?></td>
-                        <td style="text-align:right;"><?php if($type == 'CR'): echo number_format($CPROW->CPayment_amount, 2); else: echo '00.00'; endif; ?></td>
-                        <td style="text-align:right;"><?php if($type == 'CP'): echo number_format($CPROW->CPayment_amount, 2); else: echo '00.00'; endif; ?></td>
+                        <td style="text-align:right;"><?php if($type == 'CR'): echo number_format($CPROW->CPayment_amount+$CPROW->CPayment_adjustment, 2); else: echo '00.00'; endif; ?></td>
+                        <td style="text-align:right;"><?php if($type == 'CP'): echo number_format($CPROW->CPayment_amount+$CPROW->CPayment_adjustment, 2); else: echo '00.00'; endif; ?></td>
                         </tr>
                         <tr>
                             <th colspan="2" style="font-size: 14px; font-weight: 700; text-align: right;">Total:</th>
-                            <th style="font-size: 13px; font-weight: 700;text-align:right;"><?php if($type == 'CR'): echo number_format($CPROW->CPayment_amount, 2); else: echo '00.00'; endif; ?></th>
-                            <th style="font-size: 13px; font-weight: 700;text-align:right;"><?php if($type == 'CP'): echo number_format($CPROW->CPayment_amount, 2); else: echo '00.00'; endif; ?></th>
+                            <th style="font-size: 13px; font-weight: 700;text-align:right;"><?php if($type == 'CR'): echo number_format($CPROW->CPayment_amount+$CPROW->CPayment_adjustment, 2); else: echo '00.00'; endif; ?></th>
+                            <th style="font-size: 13px; font-weight: 700;text-align:right;"><?php if($type == 'CP'): echo number_format($CPROW->CPayment_amount+$CPROW->CPayment_adjustment, 2); else: echo '00.00'; endif; ?></th>
                         </tr>
                     </tbody>
                 </table>
@@ -72,7 +72,7 @@ $totalDue = $type == 'CR' ? $prevdueAmont - $CPROW->CPayment_amount : $prevdueAm
         </div>
         <div class="row" style="margin-bottom: 20px;">
             <div class="col-xs-12">
-                <h6 style=" font-size: 12px; font-weight: 600;">Paid (In Word): <?php echo convertNumberToWord($CPROW->CPayment_amount);?></h6>
+                <h6 style=" font-size: 12px; font-weight: 600;">Paid (In Word): <?php echo convertNumberToWord($CPROW->CPayment_amount+$CPROW->CPayment_adjustment);?></h6>
             </div>
         </div>
         <div class="row" style="margin-bottom: 20px;">
@@ -84,7 +84,7 @@ $totalDue = $type == 'CR' ? $prevdueAmont - $CPROW->CPayment_amount : $prevdueAm
                     </tr>
                     <tr>
                         <td  style="font-size: 13px; font-weight: 600; border-bottom: 2px solid #000; ">Paid Amount : </td>
-                        <td  style="font-size: 13px; font-weight: 600; border-bottom: 2px solid #000; text-align: right; "><?php echo number_format($CPROW->CPayment_amount, 2); ?></td>
+                        <td  style="font-size: 13px; font-weight: 600; border-bottom: 2px solid #000; text-align: right; "><?php echo number_format($CPROW->CPayment_amount+$CPROW->CPayment_adjustment, 2); ?></td>
                     </tr>
                     <tr>
                         <td style="font-size: 13px; font-weight: 600; ">Current Due : </td>

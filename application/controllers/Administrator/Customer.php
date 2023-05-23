@@ -124,6 +124,11 @@ class Customer extends CI_Controller
                             c.Customer_SlNo,
                             c.Customer_Code,
                             c.Customer_Name, 
+                            (SELECT IFNULL(SUM(cp.CPayment_adjustment), 0)
+                            FROM tbl_customer_payment cp 
+                            WHERE cp.CPayment_status = 'a'
+                            AND cp.CPayment_TransactionType = 'CR' 
+                            AND cp.SaleMaster_InvoiceNo = sm.SaleMaster_InvoiceNo) AS adjustmentPayment,
                             (SELECT IFNULL(SUM(cp.CPayment_amount), 0)
                             FROM tbl_customer_payment cp 
                             WHERE cp.CPayment_status = 'a'
@@ -162,6 +167,7 @@ class Customer extends CI_Controller
         $payments = $this->db->query("
             select
                 cp.*,
+                (cp.CPayment_amount + cp.CPayment_adjustment) as totalAmount,
                 c.Customer_Code,
                 c.Customer_Name,
                 c.Customer_Mobile,
@@ -616,7 +622,7 @@ class Customer extends CI_Controller
 
     function getCustomerLedger(){
         $data = json_decode($this->input->raw_input_stream);
-        $previousDueQuery = $this->db->query("select ifnull(previous_due, 0.00) as previous_due from tbl_customer where Customer_SlNo = '$data->customerId'")->row();
+        $previousDueQuery = $this->db->query("select ifnull(derma_due+nutrition_due+healthcare_due, 0.00) as previous_due from tbl_customer where Customer_SlNo = '$data->customerId'")->row();
         
         $payments = $this->db->query("
             select 
@@ -647,7 +653,7 @@ class Customer extends CI_Controller
                     end, ' ', cp.CPayment_notes
                 ) as description,
                 0.00 as bill,
-                cp.CPayment_amount as paid,
+                (cp.CPayment_amount+cp.Cpayment_adjustment) as paid,
                 0.00 as due,
                 0.00 as returned,
                 0.00 as paid_out,

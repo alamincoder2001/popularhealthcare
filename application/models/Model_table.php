@@ -356,7 +356,7 @@ class Model_Table extends CI_Model
                     " . ($date == null ? "" : " and bt.transaction_date < '$date'") . "
                 ) as total_withdraw,
                 (
-                    select ifnull(sum(cp.CPayment_amount), 0) from tbl_customer_payment cp
+                    select ifnull(sum(cp.CPayment_amount) + sum(cp.CPayment_adjustment), 0) from tbl_customer_payment cp
                     where cp.account_id = ba.account_id
                     and cp.CPayment_status = 'a'
                     and cp.CPayment_TransactionType = 'CR'
@@ -661,7 +661,7 @@ class Model_Table extends CI_Model
             c.Customer_Address,
             c.Customer_Mobile,
             c.owner_name,
-            (select ifnull(sum(sm.SaleMaster_TotalSaleAmount), 0.00) + ifnull(c.derma_due, 0.00) + ifnull(c.nutrition_due, 0.00) +ifnull(c.healthcare_due, 0.00)
+            (select ifnull(sum(sm.SaleMaster_TotalSaleAmount), 0.00)
                 from tbl_salesmaster sm 
                 where sm.SalseCustomer_IDNo = c.Customer_SlNo
                 " . ($date == null ? "" : " and sm.SaleMaster_SaleDate < '$date'") . "
@@ -673,6 +673,12 @@ class Model_Table extends CI_Model
                 " . ($date == null ? "" : " and sm.SaleMaster_SaleDate < '$date'") . "
                 and sm.Status = 'a') as invoicePaid,
 
+            (select ifnull(sum(cp.CPayment_adjustment), 0.00) 
+                from tbl_customer_payment cp 
+                where cp.CPayment_customerID = c.Customer_SlNo 
+                and cp.CPayment_TransactionType = 'CR'
+                " . ($date == null ? "" : " and cp.CPayment_date < '$date'") . "
+                and cp.CPayment_status = 'a') as cashReceivedAdjustment,
             (select ifnull(sum(cp.CPayment_amount), 0.00) 
                 from tbl_customer_payment cp 
                 where cp.CPayment_customerID = c.Customer_SlNo 
@@ -680,7 +686,7 @@ class Model_Table extends CI_Model
                 " . ($date == null ? "" : " and cp.CPayment_date < '$date'") . "
                 and cp.CPayment_status = 'a') as cashReceived,
 
-            (select ifnull(sum(cp.CPayment_amount), 0.00) 
+            (select ifnull(sum(cp.CPayment_amount) + sum(cp.CPayment_adjustment), 0.00) 
                 from tbl_customer_payment cp 
                 where cp.CPayment_customerID = c.Customer_SlNo 
                 and cp.CPayment_TransactionType = 'CP'
@@ -694,9 +700,11 @@ class Model_Table extends CI_Model
                 " . ($date == null ? "" : " and sr.SaleReturn_ReturnDate < '$date'") . "
             ) as returnedAmount,
 
-            (select invoicePaid + cashReceived) as paidAmount,
+            (select ifnull(c.derma_due, 0.00) + ifnull(c.nutrition_due, 0.00) +ifnull(c.healthcare_due, 0.00)) as previousDueCustomer,
 
-            (select (billAmount + paidOutAmount) - (paidAmount + returnedAmount)) as dueAmount
+            (select invoicePaid + cashReceived + cashReceivedAdjustment) as paidAmount,
+
+            (select (billAmount + paidOutAmount + previousDueCustomer) - (paidAmount + returnedAmount)) as dueAmount
             
             from tbl_customer c
             where c.status = 'a'
