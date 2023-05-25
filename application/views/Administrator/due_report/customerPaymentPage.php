@@ -445,6 +445,11 @@
 					return
 				}
 
+				if (this.selectedInvoice.SaleMaster_InvoiceNo == '' && parseFloat(this.payment.CPayment_amount) > 0) {
+					alert("Can not pay invoice due");
+					return
+				}
+
 				this.payment.CPayment_customerID = this.selectedCustomer.Customer_SlNo;
 				this.payment.CPayment_employeeID = this.selectedEmployee.Employee_SlNo;
 				this.payment.SaleMaster_InvoiceNo = this.selectedInvoice.SaleMaster_InvoiceNo;
