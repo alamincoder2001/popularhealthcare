@@ -582,10 +582,6 @@ $route['get_delivery_order'] = 'Administrator/Order/getDeliveryOrder';
 $route['get_batchs'] = 'Administrator/Sales/getBatch';
 $route['check_batch'] = 'Administrator/Sales/checkBatch';
 
-// Export excel
-$route['export/salesqty'] = 'Administrator/Sales/exportData';
-
-
 // get report
 $route['get_totalquantity'] = 'Administrator/Sales/getTotalQty';
 

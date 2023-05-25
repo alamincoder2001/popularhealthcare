@@ -69,6 +69,13 @@
 	.record-table th {
 		text-align: center;
 	}
+
+	.tableHorizontal {
+		writing-mode: tb-rl;
+		text-align: center;
+		font-size: 10px;
+		width: 0;
+	}
 </style>
 <div id="salesTotalquantityRecord">
 	<div class="row" style="border-bottom: 1px solid #ccc;padding: 3px 0;">
@@ -113,18 +120,19 @@
 	</div>
 
 	<div class="row" style="margin-top:15px;" v-if="sales.length > 0">
-		<div class="col-md-12" style="margin-bottom: 10px;">
-			<a href="" @click.prevent="print"><i class="fa fa-print"></i> Print</a>
+		<div class="col-md-12" style="margin-bottom: 10px;display:flex;justify-content:space-between;">
+			<a style="margin: 0;" href="" @click.prevent="print"><i class="fa fa-print"></i> Print</a>
+			<a style="margin: 0;" href="" @click.prevent="exportData('tableData')"><i class="fa fa-file-excel-o"></i> Excel Export</a>
 		</div>
 		<div class="col-md-12">
 			<div class="table-responsive" id="reportContent">
-				<table class="table table-responsive table-bordered">
+				<table class="table table-responsive table-bordered tableData">
 					<tr>
 						<th style="width: 18%;"></th>
-						<template v-for="product in headerProducts">
-							<th style="writing-mode: tb-rl; text-align: center;font-size:10px;width:0;">{{product.Product_Name}}</th>
-						</template>
-						<th style="writing-mode: tb-rl; text-align: center;font-size:8px;width:0;">Total Value</th>
+						<!-- <template > -->
+						<th v-for="product in headerProducts" class="tableHorizontal">{{product.Product_Name}}</th>
+						<!-- </template> -->
+						<th class="tableHorizontal">Total Value</th>
 					</tr>
 					<tr v-for="sale in sales">
 						<th style="text-align: left;font-size:10px;">{{sale.Employee_Name}}</th>
@@ -172,6 +180,7 @@
 				selectedEmployee: null,
 				sales: [],
 				searchTypesForRecord: ['', 'customer', 'employee'],
+				filter: [],
 			}
 		},
 		computed: {
@@ -233,6 +242,8 @@
 					dateTo: this.dateTo,
 				}
 
+				this.filter = filter;
+
 				axios.post('/get_totalquantity', filter)
 					.then(res => {
 						this.headerProducts = res.data.allProducts;
@@ -242,7 +253,7 @@
 							} else {
 								this.sales = res.data.allEmployee
 							}
-						}else{
+						} else {
 							this.sales = res.data.allEmployee
 						}
 					})
@@ -308,6 +319,38 @@
 				await new Promise(resolve => setTimeout(resolve, 1000));
 				reportWindow.print();
 				reportWindow.close();
+			},
+
+			exportData(tableName) {
+				document.querySelector('.tableHorizontal').removeAttribute('class', 'tableHorizontal');
+				var downloadurl;
+				var dataFileType = 'application/vnd.ms-excel';
+				var tableSelect = document.querySelector('.' + tableName);
+				var tableHTMLData = tableSelect.outerHTML.replace(/ /g, '%20');
+
+				// Specify file name
+				var filename = 'salesQtyReport.xls';
+
+				// Create download link element
+				downloadurl = document.createElement("a");
+
+				document.body.appendChild(downloadurl);
+
+				if (navigator.msSaveOrOpenBlob) {
+					var blob = new Blob(['\ufeff', tableHTMLData], {
+						type: dataFileType
+					});
+					navigator.msSaveOrOpenBlob(blob, filename);
+				} else {
+					// Create a link to the file
+					downloadurl.href = 'data:' + dataFileType + ', ' + tableHTMLData;
+
+					// Setting the file name
+					downloadurl.download = filename;
+
+					//triggering the function
+					downloadurl.click();
+				}
 			}
 		}
 	})
