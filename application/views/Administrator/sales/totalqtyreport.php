@@ -122,7 +122,8 @@
 	<div class="row" style="margin-top:15px;" v-if="sales.length > 0">
 		<div class="col-md-12" style="margin-bottom: 10px;display:flex;justify-content:space-between;">
 			<a style="margin: 0;" href="" @click.prevent="print"><i class="fa fa-print"></i> Print</a>
-			<a style="margin: 0;" href="" @click.prevent="exportData('tableData')"><i class="fa fa-file-excel-o"></i> Excel Export</a>
+			<!-- @click.prevent="exportData('tableData')" -->
+			<button type="button" style="margin: 0;" onclick="ExportToExcel('xlsx')"><i class="fa fa-file-excel-o"></i> Excel Export</button>
 		</div>
 		<div class="col-md-12">
 			<div class="table-responsive" id="reportContent">
@@ -321,37 +322,53 @@
 				reportWindow.close();
 			},
 
-			exportData(tableName) {
-				document.querySelector('.tableHorizontal').removeAttribute('class', 'tableHorizontal');
-				var downloadurl;
-				var dataFileType = 'application/vnd.ms-excel';
-				var tableSelect = document.querySelector('.' + tableName);
-				var tableHTMLData = tableSelect.outerHTML.replace(/ /g, '%20');
+			// exportData(tableName) {
+			// 	document.querySelector('.tableHorizontal').removeAttribute('class', 'tableHorizontal');
+			// 	var downloadurl;
+			// 	var dataFileType = 'application/vnd.ms-excel';
+			// 	var tableSelect = document.querySelector('.' + tableName);
+			// 	var tableHTMLData = tableSelect.outerHTML.replace(/ /g, '%20');
 
-				// Specify file name
-				var filename = 'salesQtyReport.xls';
+			// 	// Specify file name
+			// 	var filename = 'salesQtyReport.xls';
 
-				// Create download link element
-				downloadurl = document.createElement("a");
+			// 	// Create download link element
+			// 	downloadurl = document.createElement("a");
 
-				document.body.appendChild(downloadurl);
+			// 	document.body.appendChild(downloadurl);
 
-				if (navigator.msSaveOrOpenBlob) {
-					var blob = new Blob(['\ufeff', tableHTMLData], {
-						type: dataFileType
-					});
-					navigator.msSaveOrOpenBlob(blob, filename);
-				} else {
-					// Create a link to the file
-					downloadurl.href = 'data:' + dataFileType + ', ' + tableHTMLData;
+			// 	if (navigator.msSaveOrOpenBlob) {
+			// 		var blob = new Blob(['\ufeff', tableHTMLData], {
+			// 			type: dataFileType
+			// 		});
+			// 		navigator.msSaveOrOpenBlob(blob, filename);
+			// 	} else {
+			// 		// Create a link to the file
+			// 		downloadurl.href = 'data:' + dataFileType + ', ' + tableHTMLData;
 
-					// Setting the file name
-					downloadurl.download = filename;
+			// 		// Setting the file name
+			// 		downloadurl.download = filename;
 
-					//triggering the function
-					downloadurl.click();
-				}
-			}
+			// 		//triggering the function
+			// 		downloadurl.click();
+			// 	}
+			// }
 		}
 	})
+</script>
+<script type="text/javascript" src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
+<script>
+	function ExportToExcel(type, fn, dl) {
+		var elt = document.querySelector('.tableData');
+		var wb = XLSX.utils.table_to_book(elt, {
+			sheet: "sheet1"
+		});
+		return dl ?
+			XLSX.write(wb, {
+				bookType: type,
+				bookSST: true,
+				type: 'base64'
+			}) :
+			XLSX.writeFile(wb, fn || ('salesQtyReport.' + (type || 'xlsx')));
+	}
 </script>
