@@ -1462,6 +1462,16 @@ class Sales extends CI_Controller
                     WHERE e.Reportingboss_Id = '$data->reportingBossId'
                     AND e.Employee_brinchid = '$this->sbrunch'
                 ")->result();
+
+                foreach($allEmployee as $emp){
+                    $emp->totalcash = $this->db->query("SELECT
+                    ifnull(SUM(sm.SaleMaster_PaidAmount), 0.00) as totalCash
+                    FROM tbl_salesmaster sm
+                    WHERE sm.Status = 'a'
+                    AND sm.employee_id = '$emp->Employee_SlNo'
+                    $clauses")->row();
+                }
+
         } else {
             $allEmployee = $this->db->query("SELECT
                     e.Employee_SlNo,
