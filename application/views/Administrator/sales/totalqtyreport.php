@@ -122,7 +122,6 @@
 	<div class="row" style="margin-top:15px;" v-if="sales.length > 0">
 		<div class="col-md-12" style="margin-bottom: 10px;display:flex;justify-content:space-between;">
 			<a style="margin: 0;" href="" @click.prevent="print"><i class="fa fa-print"></i> Print</a>
-			<!-- @click.prevent="exportData('tableData')" -->
 			<button type="button" style="margin: 0;" onclick="ExportToExcel('xlsx')"><i class="fa fa-file-excel-o"></i> Excel Export</button>
 		</div>
 		<div class="col-md-12">
