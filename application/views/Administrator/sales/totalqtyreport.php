@@ -133,6 +133,7 @@
 						<th v-for="product in headerProducts" class="tableHorizontal">{{product.Product_Name}}</th>
 						<!-- </template> -->
 						<th class="tableHorizontal">Total Value</th>
+						<th class="tableHorizontal">Previous Due</th>
 						<th class="tableHorizontal">Total Cash</th>
 					</tr>
 					<tr v-for="sale in sales">
@@ -141,7 +142,8 @@
 							<td style="font-size:10px;">{{item.qty}}</td>
 						</template>
 						<td style="font-size:10px;">{{sale.products.reduce((acc, pre) => {return acc + +pre.sale_rate}, 0).toFixed(2)}}</td>
-						<td style="font-size:10px;">{{sale.totalcash.totalCash}}</td>
+						<td style="font-size:10px;">{{sale.previousDue}}</td>
+						<td style="font-size:10px;">{{sale.totalCash}}</td>
 					</tr>
 					<tr style="background: #76767691;" v-if="selectedEmployee == null">
 						<th style="text-align: right;font-size:10px;">Total:</th>
@@ -152,7 +154,7 @@
 							{{sales.reduce((acc, prod) => {return acc + + prod.products.reduce((ac, pre)=>{return ac + +pre.sale_rate}, 0)}, 0).toFixed(2)}}
 						</th>
 						<th style="font-size:10px;">
-							{{sales.reduce((acc, prod) => {return acc + + prod.totalcash.totalCash}, 0).toFixed(2)}}
+							{{sales.reduce((acc, prod) => {return acc + + prod.totalCash}, 0).toFixed(2)}}
 						</th>
 					</tr>
 				</table>

@@ -1455,22 +1455,36 @@ class Sales extends CI_Controller
 
         if (isset($data->reportingBossId) && $data->reportingBossId != '') {
             $allEmployee = $this->db->query("SELECT
-                    e.Employee_SlNo,
-                    e.Employee_Name,
-                    e.Category_ID as category_id
-                    FROM tbl_employee e
-                    WHERE e.Reportingboss_Id = '$data->reportingBossId'
-                    AND e.Employee_brinchid = '$this->sbrunch'
+                        em.Employee_SlNo,
+                        em.Employee_Name,
+                        em.Category_ID as category_id,
+                        (SELECT ifnull(SUM(cp.CPayment_amount) + SUM(cp.CPayment_adjustment), 0) 
+                        FROM tbl_customer_payment cp
+                        WHERE cp.CPayment_status = 'a'
+                        AND cp.CPayment_brunchid = '$this->sbrunch'
+                        AND cp.CPayment_employeeID = em.Employee_SlNo
+                        ) as customerPayment,
+                        (SELECT ifnull(sum(sm.SaleMaster_TotalSaleAmount)-SUM(sm.SaleMaster_PaidAmount),0)
+                        FROM tbl_salesmaster sm
+                        WHERE sm.Status = 'a'
+                        AND sm.SaleMaster_branchid = '$this->sbrunch'
+                        AND sm.employee_id = em.Employee_SlNo
+                        -- AND sm.SaleMaster_SaleDate < '$data->dateFrom' - INTERVAL 30 DAY
+                        $clauses
+                        ) as dueSales,
+                        (SELECT ifnull(SUM(sm.SaleMaster_PaidAmount),0)
+                        FROM tbl_salesmaster sm
+                        WHERE sm.Status = 'a'
+                        AND sm.SaleMaster_branchid = '$this->sbrunch'
+                        AND sm.employee_id = em.Employee_SlNo
+                        $clauses
+                        ) as totalCash,
+                        (SELECT dueSales - customerPayment) as previousDue
+                    FROM tbl_employee em
+                    WHERE em.status = 'a'
+                    AND em.Reportingboss_Id = '$data->reportingBossId'
+                    AND em.Employee_brinchid = '$this->sbrunch'
                 ")->result();
-
-                foreach($allEmployee as $emp){
-                    $emp->totalcash = $this->db->query("SELECT
-                    ifnull(SUM(sm.SaleMaster_PaidAmount), 0.00) as totalCash
-                    FROM tbl_salesmaster sm
-                    WHERE sm.Status = 'a'
-                    AND sm.employee_id = '$emp->Employee_SlNo'
-                    $clauses")->row();
-                }
 
         } else {
             $allEmployee = $this->db->query("SELECT
