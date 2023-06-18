@@ -1464,14 +1464,14 @@ class Sales extends CI_Controller
                         AND cp.CPayment_brunchid = '$this->sbrunch'
                         AND cp.CPayment_employeeID = em.Employee_SlNo
                         ) as customerPayment,
-                        (SELECT ifnull(sum(sm.SaleMaster_TotalSaleAmount)-SUM(sm.SaleMaster_PaidAmount),0)
+                        (SELECT ifnull(SUM(sm.SaleMaster_TotalSaleAmount),0)
                         FROM tbl_salesmaster sm
                         WHERE sm.Status = 'a'
                         AND sm.SaleMaster_branchid = '$this->sbrunch'
                         AND sm.employee_id = em.Employee_SlNo
                         -- AND sm.SaleMaster_SaleDate < '$data->dateFrom' - INTERVAL 30 DAY
-                        $clauses
-                        ) as dueSales,
+                        -- $clauses
+                        ) as totalSales,
                         (SELECT ifnull(SUM(sm.SaleMaster_PaidAmount),0)
                         FROM tbl_salesmaster sm
                         WHERE sm.Status = 'a'
@@ -1479,7 +1479,7 @@ class Sales extends CI_Controller
                         AND sm.employee_id = em.Employee_SlNo
                         $clauses
                         ) as totalCash,
-                        (SELECT dueSales - customerPayment) as previousDue
+                        (SELECT totalSales - (totalCash+customerPayment)) as previousDue
                     FROM tbl_employee em
                     WHERE em.status = 'a'
                     AND em.Reportingboss_Id = '$data->reportingBossId'

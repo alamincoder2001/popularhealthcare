@@ -122,7 +122,7 @@
 	<div class="row" style="margin-top:15px;" v-if="sales.length > 0">
 		<div class="col-md-12" style="margin-bottom: 10px;display:flex;justify-content:space-between;">
 			<a style="margin: 0;" href="" @click.prevent="print"><i class="fa fa-print"></i> Print</a>
-			<button type="button" style="margin: 0;" onclick="ExportToExcel('xlsx')"><i class="fa fa-file-excel-o"></i> Excel Export</button>
+			<a href="" style="margin: 0;" onclick="ExportToExcel(event, 'xlsx')"><i class="fa fa-file-excel-o"></i> Excel Export</a>
 		</div>
 		<div class="col-md-12">
 			<div class="table-responsive" id="reportContent">
@@ -135,6 +135,7 @@
 						<th class="tableHorizontal">Total Value</th>
 						<th class="tableHorizontal">Previous Due</th>
 						<th class="tableHorizontal">Total Cash</th>
+						<th class="tableHorizontal">Total Due</th>
 					</tr>
 					<tr v-for="sale in sales">
 						<th style="text-align: left;font-size:10px;">{{sale.Employee_Name}}</th>
@@ -144,6 +145,7 @@
 						<td style="font-size:10px;">{{sale.products.reduce((acc, pre) => {return acc + +pre.sale_rate}, 0).toFixed(2)}}</td>
 						<td style="font-size:10px;">{{sale.previousDue}}</td>
 						<td style="font-size:10px;">{{sale.totalCash}}</td>
+						<td style="font-size:10px;">{{((sale.products.reduce((acc, pre) => {return acc + +pre.sale_rate}, 0) + + parseFloat(sale.previousDue)) - parseFloat(sale.totalCash)).toFixed(2)}}</td>
 					</tr>
 					<tr style="background: #76767691;" v-if="selectedEmployee == null">
 						<th style="text-align: right;font-size:10px;">Total:</th>
@@ -154,7 +156,13 @@
 							{{sales.reduce((acc, prod) => {return acc + + prod.products.reduce((ac, pre)=>{return ac + +pre.sale_rate}, 0)}, 0).toFixed(2)}}
 						</th>
 						<th style="font-size:10px;">
+							{{sales.reduce((acc, prod) => {return acc + + prod.previousDue}, 0).toFixed(2)}}
+						</th>
+						<th style="font-size:10px;">
 							{{sales.reduce((acc, prod) => {return acc + + prod.totalCash}, 0).toFixed(2)}}
+						</th>
+						<th style="font-size:10px;">
+							{{((sales.reduce((acc, prod) => {return acc + + prod.products.reduce((ac, pre)=>{return ac + +pre.sale_rate}, 0)}, 0) + sales.reduce((acc, prod) => {return acc + + prod.previousDue}, 0) ) - sales.reduce((acc, prod) => {return acc + + prod.totalCash}, 0)).toFixed(2)}}
 						</th>
 					</tr>
 				</table>
@@ -364,7 +372,9 @@
 </script>
 <script type="text/javascript" src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
 <script>
-	function ExportToExcel(type, fn, dl) {
+	function ExportToExcel(event, type, fn, dl) {
+		event.preventDefault();
+		
 		var elt = document.querySelector('.tableData');
 		var wb = XLSX.utils.table_to_book(elt, {
 			sheet: "sheet1"
