@@ -501,7 +501,7 @@
 				let filterCustomers = [];
 				if (this.selectedEmployee.Department_Name == 'Derma Division') {
 					filterCustomers = this.customers.filter(cus => cus.Derma_Id == this.selectedEmployee.Employee_SlNo)
-				} else if (this.selectedEmployee.Department_Name == 'Health Care Division') {
+				} else if (this.selectedEmployee.Department_Name == 'Healthcare Division') {
 					filterCustomers = this.customers.filter(cus => cus.Healthcare_Id == this.selectedEmployee.Employee_SlNo)
 				} else if (this.selectedEmployee.Department_Name == 'Nutrition Division') {
 					filterCustomers = this.customers.filter(cus => cus.Nutrition_Id == this.selectedEmployee.Employee_SlNo)
